@@ -1,0 +1,102 @@
+// Schema do NotariusIA
+// OBS: usando SQLite para rodar/testar localmente sem depender de infra externa.
+// Para produção, troque o provider para "postgresql" e aponte DATABASE_URL
+// para um Postgres real (Supabase, Neon, RDS, etc.) — SQLite não é adequado
+// para múltiplos tabelionatos escrevendo ao mesmo tempo.
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum PlanoTipo {
+  BASICO
+  PRO
+  ILIMITADO
+}
+
+enum PapelUsuario {
+  ADMIN
+  ESCRIVAO
+}
+
+enum TipoAgente {
+  URBANO
+  RURAL
+  QUALIFLASH
+}
+
+enum StatusAtendimento {
+  EM_ANDAMENTO
+  CONCLUIDO
+  ARQUIVADO
+}
+
+// Um Tabelionato = um tenant. Todo dado sensível é isolado por tabelionatoId.
+model Tabelionato {
+  id            String   @id @default(uuid())
+  nome          String
+  cidade        String?
+  uf            String?
+  createdAt     DateTime @default(now())
+
+  plano         PlanoTipo @default(BASICO)
+  limiteMensal  Int       @default(30) // nº de atendimentos/mês incluídos no plano
+  stripeCustomerId String?
+
+  usuarios      Usuario[]
+  atendimentos  Atendimento[]
+}
+
+model Usuario {
+  id             String   @id @default(uuid())
+  nome           String
+  email          String   @unique
+  senhaHash      String
+  papel          PapelUsuario @default(ESCRIVAO)
+  createdAt      DateTime @default(now())
+
+  tabelionatoId  String
+  tabelionato    Tabelionato @relation(fields: [tabelionatoId], references: [id])
+
+  atendimentos   Atendimento[]
+}
+
+// Cada uso de um agente (Urbano, Rural, QualiFlash) gera um Atendimento.
+model Atendimento {
+  id             String   @id @default(uuid())
+  agente         TipoAgente
+  status         StatusAtendimento @default(EM_ANDAMENTO)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Prazo de retenção — dados pessoais (CPF, RG, matrícula) não devem
+  // ficar armazenados indefinidamente. Job de limpeza deve rodar
+  // periodicamente e apagar atendimentos com excluirEm < now().
+  excluirEm      DateTime?
+
+  tabelionatoId  String
+  tabelionato    Tabelionato @relation(fields: [tabelionatoId], references: [id])
+
+  usuarioId      String
+  usuario        Usuario @relation(fields: [usuarioId], references: [id])
+
+  mensagens      Mensagem[]
+}
+
+// Histórico de conversa/execução de um atendimento (usado principalmente
+// pelo QualiFlash, que é conversacional; Urbano/Rural normalmente têm
+// 1 mensagem de entrada + 1 de resultado).
+model Mensagem {
+  id             String   @id @default(uuid())
+  atendimentoId  String
+  atendimento    Atendimento @relation(fields: [atendimentoId], references: [id])
+
+  papel          String   // "user" | "assistant"
+  conteudo       String   // texto (resultado, pergunta, resposta etc.)
+  createdAt      DateTime @default(now())
+}
