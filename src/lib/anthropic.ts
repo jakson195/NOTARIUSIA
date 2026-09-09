@@ -23,11 +23,11 @@ export type DocumentoAnexo = {
 
 // Monta os blocos de conteúdo (texto + documentos/imagens) no formato que a
 // API da Claude espera, a partir dos anexos enviados pelo usuário.
-export function montarBlocosDeConteudo(
-  textoUsuario: string,
-  anexos: DocumentoAnexo[]
-): Anthropic.MessageParam['content'] {
-  const blocos: Anthropic.MessageParam['content'] = [];
+// Tipado como `any[]` de propósito: a tipagem estrita da SDK, nesta versão,
+// não inclui blocos "document" (PDF) no tipo de MessageParam.content, mesmo
+// a API aceitando esse formato normalmente em tempo de execução.
+export function montarBlocosDeConteudo(textoUsuario: string, anexos: DocumentoAnexo[]): any[] {
+  const blocos: any[] = [];
 
   for (const anexo of anexos) {
     if (anexo.tipo === 'pdf') {
@@ -44,11 +44,7 @@ export function montarBlocosDeConteudo(
         type: 'image',
         source: {
           type: 'base64',
-          media_type: anexo.mediaType as
-            | 'image/jpeg'
-            | 'image/png'
-            | 'image/gif'
-            | 'image/webp',
+          media_type: anexo.mediaType,
           data: anexo.base64,
         },
       });
