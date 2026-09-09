@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type Anthropic from '@anthropic-ai/sdk';
-import { anthropic, CLAUDE_MODEL, montarBlocosDeConteudo, DocumentoAnexo } from '@/lib/anthropic';
+import { anthropic, CLAUDE_MODEL, montarBlocosDeConteudo, AnexoUpload } from '@/lib/anthropic';
 import { RURAL_SYSTEM_PROMPT } from '@/lib/agents/prompts';
 
 // POST /api/agents/rural
-// body: { texto?: string, anexos: DocumentoAnexo[], respostaAnterior?: string }
+// body: { texto?: string, anexos: AnexoUpload[], respostaAnterior?: string }
 //
 // Mesmo padrão do Urbano: fluxo "one-shot", com suporte a documentos
 // enviados em etapas dentro do mesmo atendimento.
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const texto: string = body.texto ?? '';
-    const anexos: DocumentoAnexo[] = body.anexos ?? [];
+    const anexos: AnexoUpload[] = body.anexos ?? [];
     const respostaAnterior: string | undefined = body.respostaAnterior;
 
     if (!texto && anexos.length === 0) {
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: montarBlocosDeConteudo(textoUsuario, anexos),
+          content: await montarBlocosDeConteudo(textoUsuario, anexos),
         },
       ],
     });

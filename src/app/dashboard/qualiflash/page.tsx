@@ -2,30 +2,43 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { upload } from '@vercel/blob/client';
 
-type Anexo = { tipo: 'pdf' | 'imagem'; mediaType: string; base64: string; nome: string };
+type Anexo = { tipo: 'pdf' | 'imagem'; mediaType: string; url: string; nome: string };
 type Mensagem = { papel: 'user' | 'assistant'; conteudo: string };
 
 export default function QualiFlashPage() {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [texto, setTexto] = useState('');
   const [anexos, setAnexos] = useState<Anexo[]>([]);
+  const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
   async function handleArquivos(files: FileList | null) {
     if (!files) return;
-    const novos: Anexo[] = [];
-    for (const file of Array.from(files)) {
-      const base64 = await fileParaBase64(file);
-      novos.push({
-        tipo: file.type === 'application/pdf' ? 'pdf' : 'imagem',
-        mediaType: file.type,
-        base64,
-        nome: file.name,
-      });
+    setEnviandoArquivo(true);
+    setErro(null);
+    try {
+      const novos: Anexo[] = [];
+      for (const file of Array.from(files)) {
+        const blob = await upload(file.name, file, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        novos.push({
+          tipo: file.type === 'application/pdf' ? 'pdf' : 'imagem',
+          mediaType: file.type,
+          url: blob.url,
+          nome: file.name,
+        });
+      }
+      setAnexos((atuais) => [...atuais, ...novos]);
+    } catch (e: any) {
+      setErro(e.message ?? 'Erro ao enviar arquivo.');
+    } finally {
+      setEnviandoArquivo(false);
     }
-    setAnexos((atuais) => [...atuais, ...novos]);
   }
 
   async function enviar() {
@@ -51,7 +64,7 @@ export default function QualiFlashPage() {
         body: JSON.stringify({
           historico: mensagens,
           texto: textoEnviado,
-          anexos: anexosEnviados.map(({ tipo, mediaType, base64 }) => ({ tipo, mediaType, base64 })),
+          anexos: anexosEnviados.map(({ tipo, mediaType, url }) => ({ tipo, mediaType, url })),
         }),
       });
       const data = await resp.json();
@@ -95,6 +108,7 @@ export default function QualiFlashPage() {
         {carregando && <p className="text-sm text-ink-400">Analisando…</p>}
       </section>
 
+      {enviandoArquivo && <p className="text-xs text-ink-400 mb-1">Enviando arquivo…</p>}
       {anexos.length > 0 && (
         <ul className="text-xs text-ink-500 list-disc list-inside mb-2">
           {anexos.map((a, i) => (
@@ -118,10 +132,11 @@ export default function QualiFlashPage() {
             accept="application/pdf,image/*"
             onChange={(e) => handleArquivos(e.target.files)}
             className="text-xs"
+            disabled={enviandoArquivo}
           />
           <button
             onClick={enviar}
-            disabled={carregando || (!texto && anexos.length === 0)}
+            disabled={carregando || enviandoArquivo || (!texto && anexos.length === 0)}
             className="bg-ink-800 text-paper-soft px-4 py-1.5 rounded-sm text-sm hover:bg-ink-700 disabled:opacity-50"
           >
             Enviar
@@ -141,13 +156,4 @@ export default function QualiFlashPage() {
       )}
     </main>
   );
-}
-
-function fileParaBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve((reader.result as string).split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type Anthropic from '@anthropic-ai/sdk';
-import { anthropic, CLAUDE_MODEL, montarBlocosDeConteudo, DocumentoAnexo } from '@/lib/anthropic';
+import { anthropic, CLAUDE_MODEL, montarBlocosDeConteudo, AnexoUpload } from '@/lib/anthropic';
 import { QUALIFLASH_SYSTEM_PROMPT } from '@/lib/agents/prompts';
 
 type MensagemHistorico = { papel: 'user' | 'assistant'; conteudo: string };
 
 // POST /api/agents/qualiflash
-// body: { historico: MensagemHistorico[], texto: string, anexos?: DocumentoAnexo[] }
+// body: { historico: MensagemHistorico[], texto: string, anexos?: AnexoUpload[] }
 //
 // Fluxo em chat: o agente pode perguntar dados faltantes antes de fechar a
 // qualificação, então o frontend reenvia o histórico completo a cada turno.
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const historico: MensagemHistorico[] = body.historico ?? [];
     const texto: string = body.texto ?? '';
-    const anexos: DocumentoAnexo[] = body.anexos ?? [];
+    const anexos: AnexoUpload[] = body.anexos ?? [];
 
     if (!texto && anexos.length === 0 && historico.length === 0) {
       return NextResponse.json(
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     mensagens.push({
       role: 'user',
-      content: montarBlocosDeConteudo(texto, anexos),
+      content: await montarBlocosDeConteudo(texto, anexos),
     });
 
     const resposta = await anthropic.messages.create({

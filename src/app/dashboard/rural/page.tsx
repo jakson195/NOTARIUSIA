@@ -2,29 +2,42 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { upload } from '@vercel/blob/client';
 
-type Anexo = { tipo: 'pdf' | 'imagem'; mediaType: string; base64: string; nome: string };
+type Anexo = { tipo: 'pdf' | 'imagem'; mediaType: string; url: string; nome: string };
 
 export default function RuralPage() {
   const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [texto, setTexto] = useState('');
+  const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
   async function handleArquivos(files: FileList | null) {
     if (!files) return;
-    const novos: Anexo[] = [];
-    for (const file of Array.from(files)) {
-      const base64 = await fileParaBase64(file);
-      novos.push({
-        tipo: file.type === 'application/pdf' ? 'pdf' : 'imagem',
-        mediaType: file.type,
-        base64,
-        nome: file.name,
-      });
+    setEnviandoArquivo(true);
+    setErro(null);
+    try {
+      const novos: Anexo[] = [];
+      for (const file of Array.from(files)) {
+        const blob = await upload(file.name, file, {
+          access: 'public',
+          handleUploadUrl: '/api/upload',
+        });
+        novos.push({
+          tipo: file.type === 'application/pdf' ? 'pdf' : 'imagem',
+          mediaType: file.type,
+          url: blob.url,
+          nome: file.name,
+        });
+      }
+      setAnexos((atuais) => [...atuais, ...novos]);
+    } catch (e: any) {
+      setErro(e.message ?? 'Erro ao enviar arquivo.');
+    } finally {
+      setEnviandoArquivo(false);
     }
-    setAnexos((atuais) => [...atuais, ...novos]);
   }
 
   async function processar() {
@@ -36,7 +49,7 @@ export default function RuralPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           texto,
-          anexos: anexos.map(({ tipo, mediaType, base64 }) => ({ tipo, mediaType, base64 })),
+          anexos: anexos.map(({ tipo, mediaType, url }) => ({ tipo, mediaType, url })),
           respostaAnterior: resultado ?? undefined,
         }),
       });
@@ -75,7 +88,9 @@ export default function RuralPage() {
           accept="application/pdf,image/*"
           onChange={(e) => handleArquivos(e.target.files)}
           className="text-sm"
+          disabled={enviandoArquivo}
         />
+        {enviandoArquivo && <p className="mt-2 text-xs text-ink-400">Enviando arquivo…</p>}
         {anexos.length > 0 && (
           <ul className="mt-3 text-sm text-ink-500 list-disc list-inside">
             {anexos.map((a, i) => (
@@ -97,7 +112,7 @@ export default function RuralPage() {
 
         <button
           onClick={processar}
-          disabled={carregando || (anexos.length === 0 && !texto)}
+          disabled={carregando || enviandoArquivo || (anexos.length === 0 && !texto)}
           className="mt-4 bg-ink-800 text-paper-soft px-5 py-2 rounded-sm text-sm hover:bg-ink-700 disabled:opacity-50"
         >
           {carregando ? 'Processando…' : resultado ? 'Enviar novos documentos' : 'Extrair dados'}
@@ -133,15 +148,6 @@ export default function RuralPage() {
       )}
     </main>
   );
-}
-
-function fileParaBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve((reader.result as string).split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }
 
 function separarPendencias(resultado: string | null): { lista: string; pendencias: string | null } {

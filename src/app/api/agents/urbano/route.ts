@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type Anthropic from '@anthropic-ai/sdk';
-import { anthropic, CLAUDE_MODEL, montarBlocosDeConteudo, DocumentoAnexo } from '@/lib/anthropic';
+import { anthropic, CLAUDE_MODEL, montarBlocosDeConteudo, AnexoUpload } from '@/lib/anthropic';
 import { URBANO_SYSTEM_PROMPT } from '@/lib/agents/prompts';
 
 // POST /api/agents/urbano
-// body: { texto?: string, anexos: DocumentoAnexo[] }
+// body: { texto?: string, anexos: AnexoUpload[], respostaAnterior?: string }
 //
 // Fluxo do Urbano é "one-shot": o escrivão manda os documentos (podendo
 // mandar em etapas, reenviando junto com o histórico anterior) e recebe a
@@ -13,10 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const texto: string = body.texto ?? '';
-    const anexos: DocumentoAnexo[] = body.anexos ?? [];
-    // Histórico opcional: quando o escrivão está enviando documentos em
-    // etapas, o frontend reenvia o texto consolidado das respostas
-    // anteriores aqui para o agente "lembrar" do que já foi extraído.
+    const anexos: AnexoUpload[] = body.anexos ?? [];
     const respostaAnterior: string | undefined = body.respostaAnterior;
 
     if (!texto && anexos.length === 0) {
@@ -37,7 +34,7 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: montarBlocosDeConteudo(textoUsuario, anexos),
+          content: await montarBlocosDeConteudo(textoUsuario, anexos),
         },
       ],
     });

@@ -1,8 +1,8 @@
 // Schema do NotariusIA
-// OBS: usando SQLite para rodar/testar localmente sem depender de infra externa.
-// Para produção, troque o provider para "postgresql" e aponte DATABASE_URL
-// para um Postgres real (Supabase, Neon, RDS, etc.) — SQLite não é adequado
-// para múltiplos tabelionatos escrevendo ao mesmo tempo.
+// Postgres é obrigatório aqui (não SQLite): a Vercel não tem disco
+// persistente entre execuções, e o Prisma não suporta enums em SQLite —
+// os campos PlanoTipo, PapelUsuario, TipoAgente e StatusAtendimento abaixo
+// dependem de enum nativo do banco.
 
 datasource db {
   provider = "postgresql"
