@@ -13,6 +13,7 @@ export default function QualiFlashPage() {
   const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [atendimentoId, setAtendimentoId] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
   async function handleArquivos(files: FileList | null) {
@@ -65,11 +66,13 @@ export default function QualiFlashPage() {
           historico: mensagens,
           texto: textoEnviado,
           anexos: anexosEnviados.map(({ tipo, mediaType, url }) => ({ tipo, mediaType, url })),
+          atendimentoId: atendimentoId ?? undefined,
         }),
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'Erro ao processar.');
       setMensagens([...historicoAtual, { papel: 'assistant', conteudo: data.resposta }]);
+      setAtendimentoId(data.atendimentoId ?? atendimentoId);
     } catch (e: any) {
       setErro(e.message ?? 'Erro inesperado.');
     } finally {
@@ -148,7 +151,7 @@ export default function QualiFlashPage() {
 
       {mensagens.length > 0 && (
         <button
-          onClick={() => setMensagens([])}
+          onClick={() => { setMensagens([]); setAtendimentoId(null); }}
           className="mt-4 text-xs text-ink-400 hover:text-wax self-start"
         >
           Encerrar e apagar esta conversa

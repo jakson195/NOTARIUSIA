@@ -69,6 +69,12 @@ model Usuario {
 // Cada uso de um agente (Urbano, Rural, QualiFlash) gera um Atendimento.
 model Atendimento {
   id             String   @id @default(uuid())
+
+  // Título sugerido automaticamente a partir do resultado (ex: nome do
+  // vendedor/comprador, ou da pessoa qualificada), editável pelo escrivão.
+  // É o principal campo usado na busca do histórico.
+  titulo         String   @default("Atendimento sem título")
+
   agente         TipoAgente
   status         StatusAtendimento @default(EM_ANDAMENTO)
   createdAt      DateTime @default(now())
@@ -79,13 +85,19 @@ model Atendimento {
   // periodicamente e apagar atendimentos com excluirEm < now().
   excluirEm      DateTime?
 
-  tabelionatoId  String
-  tabelionato    Tabelionato @relation(fields: [tabelionatoId], references: [id])
+  // Opcionais por enquanto: ainda não existe autenticação/multi-tenant.
+  // Quando a autenticação real for implementada, tornar obrigatórios de
+  // novo e preencher a partir da sessão do usuário logado.
+  tabelionatoId  String?
+  tabelionato    Tabelionato? @relation(fields: [tabelionatoId], references: [id])
 
-  usuarioId      String
-  usuario        Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId      String?
+  usuario        Usuario? @relation(fields: [usuarioId], references: [id])
 
   mensagens      Mensagem[]
+
+  @@index([titulo])
+  @@index([createdAt])
 }
 
 // Histórico de conversa/execução de um atendimento (usado principalmente

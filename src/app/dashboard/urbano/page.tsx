@@ -12,6 +12,7 @@ export default function UrbanoPage() {
   const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
+  const [atendimentoId, setAtendimentoId] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
   async function handleArquivos(files: FileList | null) {
@@ -51,11 +52,13 @@ export default function UrbanoPage() {
           texto,
           anexos: anexos.map(({ tipo, mediaType, url }) => ({ tipo, mediaType, url })),
           respostaAnterior: resultado ?? undefined,
+          atendimentoId: atendimentoId ?? undefined,
         }),
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'Erro ao processar.');
       setResultado(data.resultado);
+      setAtendimentoId(data.atendimentoId ?? atendimentoId);
       setAnexos([]);
       setTexto('');
     } catch (e: any) {
