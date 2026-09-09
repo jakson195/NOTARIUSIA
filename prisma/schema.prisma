@@ -5,7 +5,7 @@
 // para múltiplos tabelionatos escrevendo ao mesmo tempo.
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
