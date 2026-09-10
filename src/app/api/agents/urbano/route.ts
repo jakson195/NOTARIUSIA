@@ -2,16 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import type Anthropic from '@anthropic-ai/sdk';
 import { anthropic, CLAUDE_MODEL, montarBlocosDeConteudo, AnexoUpload } from '@/lib/anthropic';
 import { URBANO_SYSTEM_PROMPT } from '@/lib/agents/prompts';
-import { sugerirTituloExtracao } from '@/lib/agents/titulo';
+import { sugerirTituloExtracao, sugerirTituloDeArquivo } from '@/lib/agents/titulo';
 import { prisma } from '@/lib/prisma';
 
 // POST /api/agents/urbano
-// body: { texto?: string, anexos: AnexoUpload[], respostaAnterior?: string, atendimentoId?: string }
-//
-// Fluxo do Urbano é "one-shot": o escrivão manda os documentos (podendo
-// mandar em etapas, reenviando junto com o histórico anterior) e recebe a
-// lista pronta + pendências. Cada chamada salva/atualiza um Atendimento no
-// banco, para aparecer no histórico com busca por data/nome.
+// body: { texto?, anexos: AnexoUpload[], respostaAnterior?, atendimentoId?, tituloManual? }
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -19,6 +14,7 @@ export async function POST(req: NextRequest) {
     const anexos: AnexoUpload[] = body.anexos ?? [];
     const respostaAnterior: string | undefined = body.respostaAnterior;
     const atendimentoId: string | undefined = body.atendimentoId;
+    const tituloManual: string | undefined = body.tituloManual?.trim();
 
     if (!texto && anexos.length === 0) {
       return NextResponse.json(
@@ -48,7 +44,18 @@ export async function POST(req: NextRequest) {
       .map((b) => b.text)
       .join('\n');
 
-    const titulo = sugerirTituloExtracao(textoResposta);
+    // Prioridade do título: manual > nome extraído do resultado > nome do
+    // arquivo anexado > (na criação) rótulo genérico.
+    const tituloAuto = sugerirTituloExtracao(textoResposta);
+    const tituloDoArquivo =
+      tituloAuto === 'Atendimento sem título'
+        ? sugerirTituloDeArquivo(anexos.map((a) => a.nome).filter(Boolean) as string[])
+        : null;
+    const tituloFinal =
+      tituloManual ||
+      (tituloAuto !== 'Atendimento sem título' ? tituloAuto : tituloDoArquivo) ||
+      undefined;
+
     const entradaResumo =
       texto || (anexos.length > 0 ? `${anexos.length} documento(s) anexado(s)` : '(sem texto)');
 
@@ -57,7 +64,7 @@ export async function POST(req: NextRequest) {
       atendimento = await prisma.atendimento.update({
         where: { id: atendimentoId },
         data: {
-          titulo,
+          ...(tituloFinal ? { titulo: tituloFinal } : {}), // nunca sobrescreve com fallback genérico
           mensagens: {
             create: [
               { papel: 'user', conteudo: entradaResumo },
@@ -70,7 +77,7 @@ export async function POST(req: NextRequest) {
       atendimento = await prisma.atendimento.create({
         data: {
           agente: 'URBANO',
-          titulo,
+          titulo: tituloFinal || 'Atendimento sem título',
           mensagens: {
             create: [
               { papel: 'user', conteudo: entradaResumo },
@@ -84,7 +91,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       resultado: textoResposta,
       atendimentoId: atendimento.id,
-      titulo,
+      titulo: atendimento.titulo,
     });
   } catch (err) {
     console.error('[Urbano] erro ao processar documentos:', err);

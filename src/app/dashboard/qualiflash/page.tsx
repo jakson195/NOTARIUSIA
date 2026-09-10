@@ -10,6 +10,7 @@ type Mensagem = { papel: 'user' | 'assistant'; conteudo: string };
 export default function QualiFlashPage() {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [texto, setTexto] = useState('');
+  const [tituloManual, setTituloManual] = useState('');
   const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [carregando, setCarregando] = useState(false);
@@ -65,8 +66,9 @@ export default function QualiFlashPage() {
         body: JSON.stringify({
           historico: mensagens,
           texto: textoEnviado,
-          anexos: anexosEnviados.map(({ tipo, mediaType, url }) => ({ tipo, mediaType, url })),
+          anexos: anexosEnviados.map(({ tipo, mediaType, url, nome }) => ({ tipo, mediaType, url, nome })),
           atendimentoId: atendimentoId ?? undefined,
+          tituloManual: tituloManual.trim() || undefined,
         }),
       });
       const data = await resp.json();
@@ -94,6 +96,14 @@ export default function QualiFlashPage() {
         ⚠️ Este agente lida com dados pessoais. Ao terminar, use "Encerrar e apagar" para remover o
         histórico da conversa.
       </p>
+
+      <input
+        type="text"
+        value={tituloManual}
+        onChange={(e) => setTituloManual(e.target.value)}
+        placeholder="Nome do atendimento (opcional) — deixe em branco para sugestão automática"
+        className="w-full border border-ink-200 rounded-sm p-2 text-sm mt-3"
+      />
 
       <section className="mt-6 flex-1 flex flex-col gap-3 min-h-[300px]">
         {mensagens.map((m, i) => (
@@ -151,7 +161,7 @@ export default function QualiFlashPage() {
 
       {mensagens.length > 0 && (
         <button
-          onClick={() => { setMensagens([]); setAtendimentoId(null); }}
+          onClick={() => { setMensagens([]); setAtendimentoId(null); setTituloManual(''); }}
           className="mt-4 text-xs text-ink-400 hover:text-wax self-start"
         >
           Encerrar e apagar esta conversa

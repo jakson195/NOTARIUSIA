@@ -9,6 +9,7 @@ type Anexo = { tipo: 'pdf' | 'imagem'; mediaType: string; url: string; nome: str
 export default function UrbanoPage() {
   const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [texto, setTexto] = useState('');
+  const [tituloManual, setTituloManual] = useState('');
   const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
@@ -50,9 +51,10 @@ export default function UrbanoPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           texto,
-          anexos: anexos.map(({ tipo, mediaType, url }) => ({ tipo, mediaType, url })),
+          anexos: anexos.map(({ tipo, mediaType, url, nome }) => ({ tipo, mediaType, url, nome })),
           respostaAnterior: resultado ?? undefined,
           atendimentoId: atendimentoId ?? undefined,
+          tituloManual: tituloManual.trim() || undefined,
         }),
       });
       const data = await resp.json();
@@ -82,6 +84,17 @@ export default function UrbanoPage() {
       </p>
 
       <section className="mt-6 border border-ink-200 bg-paper-soft rounded-sm p-5">
+        <label className="block text-sm font-medium text-ink-700 mb-2">
+          Nome do atendimento (opcional)
+        </label>
+        <input
+          type="text"
+          value={tituloManual}
+          onChange={(e) => setTituloManual(e.target.value)}
+          placeholder="Ex: Silva x Pereira — deixe em branco para sugestão automática"
+          className="w-full border border-ink-200 rounded-sm p-2 text-sm mb-4"
+        />
+
         <label className="block text-sm font-medium text-ink-700 mb-2">
           Documentos (PDF ou imagem)
         </label>

@@ -24,6 +24,7 @@ export type AnexoUpload = {
   tipo: 'pdf' | 'imagem';
   mediaType: string; // ex: 'application/pdf', 'image/png', 'image/jpeg'
   url: string; // URL pública retornada pelo Vercel Blob
+  nome?: string; // nome original do arquivo — usado como respaldo para sugerir título
 };
 
 async function baixarComoBase64(url: string): Promise<string> {

@@ -36,3 +36,35 @@ export function sugerirTituloQualificacao(textoResposta: string): string {
   if (match?.[1]?.trim()) return match[1].trim();
   return 'Qualificação sem título';
 }
+
+// Respaldo quando o resultado não trouxe nenhum nome (ex: só foi anexado um
+// documento do imóvel, como CAR/CCIR/matrícula, sem qualificação de pessoa
+// ainda). Usa o nome do arquivo anexado, removendo palavras genéricas de
+// tipo de documento e números (datas, códigos de matrícula etc.).
+const PALAVRAS_GENERICAS = new Set([
+  'CAR', 'CCIR', 'CNH', 'RG', 'CPF', 'CND', 'CNDT', 'ITBI', 'MATRICULA',
+  'CERTIDAO', 'CONTRATO', 'PROCURACAO', 'AVALIACAO', 'INCRA', 'NIRF',
+  'ESCRITURA', 'MINUTA', 'DOC', 'DOCUMENTO', 'RGI', 'PDF', 'IMG', 'SCAN',
+  'CONF', 'SUL', 'MAT',
+]);
+
+function semAcento(texto: string): string {
+  return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+export function sugerirTituloDeArquivo(nomesArquivos: string[]): string | null {
+  for (const nomeOriginal of nomesArquivos) {
+    const semExtensao = nomeOriginal.replace(/\.[a-zA-Z0-9]+$/, '');
+    const tokens = semExtensao.split(/[\s_-]+/).filter(Boolean);
+    const restantes = tokens.filter((tok) => {
+      if (/\d/.test(tok)) return false; // datas, números de matrícula etc.
+      const chave = semAcento(tok).toUpperCase();
+      if (PALAVRAS_GENERICAS.has(chave)) return false;
+      return /[a-zA-ZÀ-ÿ]/.test(tok);
+    });
+    if (restantes.length >= 1) {
+      return restantes.join(' ');
+    }
+  }
+  return null;
+}

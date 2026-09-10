@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
 type MensagemHistorico = { papel: 'user' | 'assistant'; conteudo: string };
 
 // POST /api/agents/qualiflash
-// body: { historico: MensagemHistorico[], texto: string, anexos?: AnexoUpload[], atendimentoId?: string }
+// body: { historico, texto, anexos?, atendimentoId?, tituloManual? }
 //
 // Fluxo em chat: o agente pode perguntar dados faltantes antes de fechar a
 // qualificação. Cada turno salva as duas mensagens novas (usuário +
@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     const texto: string = body.texto ?? '';
     const anexos: AnexoUpload[] = body.anexos ?? [];
     const atendimentoId: string | undefined = body.atendimentoId;
+    const tituloManual: string | undefined = body.tituloManual?.trim();
 
     if (!texto && anexos.length === 0 && historico.length === 0) {
       return NextResponse.json(
@@ -53,19 +54,19 @@ export async function POST(req: NextRequest) {
       .map((b) => b.text)
       .join('\n');
 
-    // Só atualiza o título quando a resposta já parece a qualificação
-    // finalizada (começa com nome, vírgula) — perguntas de esclarecimento
-    // no meio do caminho não têm esse formato, então mantemos o título
-    // anterior nesses turnos.
+    // Prioridade: título manual > nome extraído da qualificação finalizada.
+    // Perguntas de esclarecimento no meio do caminho não têm o formato de
+    // qualificação pronta, então nesses turnos o título anterior é mantido.
     const tituloSugerido = sugerirTituloQualificacao(textoResposta);
     const pareceQualificacaoFinal = tituloSugerido !== 'Qualificação sem título';
+    const tituloFinal = tituloManual || (pareceQualificacaoFinal ? tituloSugerido : undefined);
 
     let atendimento;
     if (atendimentoId) {
       atendimento = await prisma.atendimento.update({
         where: { id: atendimentoId },
         data: {
-          ...(pareceQualificacaoFinal ? { titulo: tituloSugerido } : {}),
+          ...(tituloFinal ? { titulo: tituloFinal } : {}),
           mensagens: {
             create: [
               { papel: 'user', conteudo: entradaResumo },
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
       atendimento = await prisma.atendimento.create({
         data: {
           agente: 'QUALIFLASH',
-          titulo: pareceQualificacaoFinal ? tituloSugerido : 'Qualificação em andamento',
+          titulo: tituloFinal || 'Qualificação em andamento',
           mensagens: {
             create: [
               { papel: 'user', conteudo: entradaResumo },
