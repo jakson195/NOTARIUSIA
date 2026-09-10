@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Esta rota lê parâmetros da URL (busca, filtros de data) a cada chamada,
+// então precisa ser sempre dinâmica — sem isso o Next.js tenta otimizar
+// como página estática e quebra com "Dynamic server usage".
+export const dynamic = 'force-dynamic';
+
+// GET /api/atendimentos?q=texto&agente=URBANO&de=2026-01-01&ate=2026-01-31
+export async function GET(req: NextRequest) {
+
+
 // GET /api/atendimentos?q=texto&agente=URBANO&de=2026-01-01&ate=2026-01-31
 //
 // Lista o histórico para a barra lateral, com busca por título (nome) e
