@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { upload } from '@vercel/blob/client';
 import { exportarWord } from '@/lib/exportarWord';
 
@@ -38,8 +39,6 @@ export default function HistoricoDetalhePage() {
   const [novoTitulo, setNovoTitulo] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-  // Continuação do atendimento: anexar novos documentos para eliminar
-  // pendências, ou (no QualiFlash) mandar uma nova mensagem no mesmo chat.
   const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [textoNovo, setTextoNovo] = useState('');
   const [enviandoArquivo, setEnviandoArquivo] = useState(false);
@@ -112,8 +111,6 @@ export default function HistoricoDetalhePage() {
     }
   }
 
-  // Para Urbano/Rural: reenvia com respostaAnterior = último resultado,
-  // igual ao fluxo de "documentos em etapas" das telas dos agentes.
   async function continuarExtracao() {
     if (!atendimento) return;
     setAtualizando(true);
@@ -137,7 +134,7 @@ export default function HistoricoDetalhePage() {
       if (!resp.ok) throw new Error(data.error || 'Erro ao processar.');
       setAnexos([]);
       setTextoNovo('');
-      await carregar(); // recarrega já com as novas mensagens salvas
+      await carregar();
     } catch (e: any) {
       setErro(e.message ?? 'Erro inesperado.');
     } finally {
@@ -145,8 +142,6 @@ export default function HistoricoDetalhePage() {
     }
   }
 
-  // Para QualiFlash: manda a mensagem nova reaproveitando o histórico já
-  // salvo, igual ao chat da tela normal do agente.
   async function continuarChat() {
     if (!atendimento) return;
     if (!textoNovo && anexos.length === 0) return;
@@ -200,9 +195,14 @@ export default function HistoricoDetalhePage() {
 
   return (
     <main className="px-6 py-10 max-w-3xl mx-auto">
-      <span className="text-brass-dark font-sans text-xs tracking-wide">
-        {ROTULO_AGENTE[atendimento.agente]}
-      </span>
+      <Link href="/dashboard" className="text-sm text-ink-400 hover:text-ink-600">
+        ← Painel
+      </Link>
+      <div className="mt-2">
+        <span className="text-brass-dark font-sans text-xs tracking-wide">
+          {ROTULO_AGENTE[atendimento.agente]}
+        </span>
+      </div>
 
       {editandoTitulo ? (
         <div className="flex items-center gap-2 mt-1">
@@ -264,8 +264,6 @@ export default function HistoricoDetalhePage() {
         ))}
       </div>
 
-      {/* Continuar o atendimento: anexar documentos novos para eliminar
-          pendências (Urbano/Rural) ou mandar mais uma mensagem (QualiFlash) */}
       <section className="mt-8 border border-ink-200 bg-paper-soft rounded-sm p-5">
         <h2 className="font-serif text-lg text-ink-800 mb-1">
           {ehQualiFlash ? 'Continuar a conversa' : 'Anexar novos documentos'}

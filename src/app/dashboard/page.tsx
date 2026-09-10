@@ -5,21 +5,21 @@ const agentes = [
     href: '/dashboard/urbano',
     nome: 'NotariusIA-Urbano',
     descricao:
-      'Extrai dados de escrituras urbanas (imóveis, partes, certidões) e monta a lista pronta para o sistema, na ordem exata da sua minuta.',
+      'Assistente de apoio ao tabelionato especializado em escritura pública envolvendo imóveis urbanos.',
     disponivel: true,
   },
   {
     href: '/dashboard/rural',
     nome: 'NotariusIA-Rural',
     descricao:
-      'Extrai dados de escrituras de imóveis rurais (matrícula, CCIR, INCRA, CAR, certidões ambientais e fiscais, pessoas físicas e jurídicas) na ordem exata da sua minuta rural.',
+      'Assistente de apoio ao tabelionato especializado em escritura pública envolvendo imóveis rurais.',
     disponivel: true,
   },
   {
     href: '/dashboard/qualiflash',
     nome: 'QualiFlash',
     descricao:
-      'Monta a qualificação pessoal completa a partir dos documentos, perguntando o que faltar antes de fechar o texto.',
+      'Assistente responsável por montar qualificação pessoal.',
     disponivel: true,
   },
 ];
@@ -28,7 +28,9 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen px-6 py-12 md:py-16 max-w-4xl mx-auto">
       <header className="mb-10">
-        <span className="text-brass-dark font-sans text-sm tracking-wide">NotariusIA</span>
+        <Link href="/" className="text-brass-dark font-sans text-sm tracking-wide hover:underline">
+          NotariusIA
+        </Link>
         <h1 className="font-serif text-3xl text-ink-800 mt-1">Escolha um assistente</h1>
       </header>
 
