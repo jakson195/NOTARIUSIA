@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { upload } from '@vercel/blob/client';
+import { exportarWord } from '@/lib/exportarWord';
 
 type Anexo = { tipo: 'pdf' | 'imagem'; mediaType: string; url: string; nome: string };
 type Mensagem = { papel: 'user' | 'assistant'; conteudo: string };
@@ -107,15 +108,24 @@ export default function QualiFlashPage() {
 
       <section className="mt-6 flex-1 flex flex-col gap-3 min-h-[300px]">
         {mensagens.map((m, i) => (
-          <div
-            key={i}
-            className={`max-w-[85%] rounded-sm p-3 text-sm whitespace-pre-wrap ${
-              m.papel === 'user'
-                ? 'self-end bg-ink-800 text-paper-soft'
-                : 'self-start bg-paper-soft border border-ink-200 text-ink-800'
-            }`}
-          >
-            {m.conteudo}
+          <div key={i} className={m.papel === 'user' ? 'self-end' : 'self-start'}>
+            <div
+              className={`max-w-[85%] rounded-sm p-3 text-sm whitespace-pre-wrap ${
+                m.papel === 'user'
+                  ? 'bg-ink-800 text-paper-soft'
+                  : 'bg-paper-soft border border-ink-200 text-ink-800'
+              }`}
+            >
+              {m.conteudo}
+            </div>
+            {m.papel === 'assistant' && (
+              <button
+                onClick={() => exportarWord('Qualificação pessoal', m.conteudo)}
+                className="text-xs text-brass-dark hover:underline mt-1"
+              >
+                Exportar Word
+              </button>
+            )}
           </div>
         ))}
         {carregando && <p className="text-sm text-ink-400">Analisando…</p>}

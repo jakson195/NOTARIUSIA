@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { upload } from '@vercel/blob/client';
+import { exportarWord } from '@/lib/exportarWord';
 
 type Mensagem = { id: string; papel: string; conteudo: string; createdAt: string };
 type Atendimento = {
@@ -251,6 +252,14 @@ export default function HistoricoDetalhePage() {
             <pre className="whitespace-pre-wrap text-sm bg-paper-soft border border-ink-200 rounded-sm p-4 font-sans">
               {m.conteudo}
             </pre>
+            {m.papel === 'assistant' && (
+              <button
+                onClick={() => exportarWord(atendimento.titulo, m.conteudo)}
+                className="text-xs text-brass-dark hover:underline mt-1"
+              >
+                Exportar Word
+              </button>
+            )}
           </div>
         ))}
       </div>

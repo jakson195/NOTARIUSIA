@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { upload } from '@vercel/blob/client';
+import { exportarWord } from '@/lib/exportarWord';
 
 type Anexo = { tipo: 'pdf' | 'imagem'; mediaType: string; url: string; nome: string };
 
@@ -14,6 +15,7 @@ export default function RuralPage() {
   const [carregando, setCarregando] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [atendimentoId, setAtendimentoId] = useState<string | null>(null);
+  const [titulo, setTitulo] = useState<string>('Atendimento');
   const [erro, setErro] = useState<string | null>(null);
 
   async function handleArquivos(files: FileList | null) {
@@ -61,6 +63,7 @@ export default function RuralPage() {
       if (!resp.ok) throw new Error(data.error || 'Erro ao processar.');
       setResultado(data.resultado);
       setAtendimentoId(data.atendimentoId ?? atendimentoId);
+      setTitulo(data.titulo ?? titulo);
       setAnexos([]);
       setTexto('');
     } catch (e: any) {
@@ -141,12 +144,20 @@ export default function RuralPage() {
         <section className="mt-8">
           <div className="flex items-center justify-between">
             <h2 className="font-serif text-xl text-ink-800">Resultado</h2>
-            <button
-              onClick={() => navigator.clipboard.writeText(lista)}
-              className="text-sm text-brass-dark hover:underline"
-            >
-              Copiar lista
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={() => navigator.clipboard.writeText(lista)}
+                className="text-sm text-brass-dark hover:underline"
+              >
+                Copiar lista
+              </button>
+              <button
+                onClick={() => exportarWord(titulo, resultado ?? '')}
+                className="text-sm text-brass-dark hover:underline"
+              >
+                Exportar Word
+              </button>
+            </div>
           </div>
           <pre className="mt-2 whitespace-pre-wrap text-sm bg-paper-soft border border-ink-200 rounded-sm p-4 font-sans">
             {lista}
