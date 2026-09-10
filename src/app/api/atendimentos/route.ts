@@ -7,10 +7,6 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 // GET /api/atendimentos?q=texto&agente=URBANO&de=2026-01-01&ate=2026-01-31
-export async function GET(req: NextRequest) {
-
-
-// GET /api/atendimentos?q=texto&agente=URBANO&de=2026-01-01&ate=2026-01-31
 //
 // Lista o histórico para a barra lateral, com busca por título (nome) e
 // filtro por período. Ainda sem filtro por tabelionato/usuário — isso entra
