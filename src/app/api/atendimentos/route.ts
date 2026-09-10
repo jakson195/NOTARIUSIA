@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { pegarSessao } from '@/lib/auth';
 
 // Esta rota lê parâmetros da URL (busca, filtros de data) a cada chamada,
 // então precisa ser sempre dinâmica — sem isso o Next.js tenta otimizar
@@ -9,17 +10,21 @@ export const dynamic = 'force-dynamic';
 // GET /api/atendimentos?q=texto&agente=URBANO&de=2026-01-01&ate=2026-01-31
 //
 // Lista o histórico para a barra lateral, com busca por título (nome) e
-// filtro por período. Ainda sem filtro por tabelionato/usuário — isso entra
-// quando a autenticação real existir (ver nota no schema.prisma).
+// filtro por período. Sempre restrito ao tabelionato do usuário logado.
 export async function GET(req: NextRequest) {
   try {
+    const sessao = await pegarSessao();
+    if (!sessao) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.trim();
     const agente = searchParams.get('agente');
     const de = searchParams.get('de'); // yyyy-mm-dd
     const ate = searchParams.get('ate'); // yyyy-mm-dd
 
-    const where: any = {};
+    const where: any = { tabelionatoId: sessao.tabelionatoId };
 
     if (q) {
       where.titulo = { contains: q, mode: 'insensitive' };

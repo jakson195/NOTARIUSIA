@@ -4,11 +4,17 @@ import { anthropic, CLAUDE_MODEL, montarBlocosDeConteudo, AnexoUpload } from '@/
 import { URBANO_SYSTEM_PROMPT } from '@/lib/agents/prompts';
 import { sugerirTituloExtracao, sugerirTituloDeArquivo } from '@/lib/agents/titulo';
 import { prisma } from '@/lib/prisma';
+import { pegarSessao } from '@/lib/auth';
 
 // POST /api/agents/urbano
 // body: { texto?, anexos: AnexoUpload[], respostaAnterior?, atendimentoId?, tituloManual? }
 export async function POST(req: NextRequest) {
   try {
+    const sessao = await pegarSessao();
+    if (!sessao) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
     const body = await req.json();
     const texto: string = body.texto ?? '';
     const anexos: AnexoUpload[] = body.anexos ?? [];
@@ -21,6 +27,16 @@ export async function POST(req: NextRequest) {
         { error: 'Envie ao menos um documento (PDF/imagem) ou um texto.' },
         { status: 400 }
       );
+    }
+
+    // Se está continuando um atendimento existente, confirma que ele
+    // pertence ao mesmo tabelionato da sessão — impede que alguém, mesmo
+    // conhecendo o ID, atualize o atendimento de outro tabelionato.
+    if (atendimentoId) {
+      const existente = await prisma.atendimento.findUnique({ where: { id: atendimentoId } });
+      if (!existente || existente.tabelionatoId !== sessao.tabelionatoId) {
+        return NextResponse.json({ error: 'Atendimento não encontrado.' }, { status: 404 });
+      }
     }
 
     const textoUsuario = respostaAnterior
@@ -44,8 +60,6 @@ export async function POST(req: NextRequest) {
       .map((b) => b.text)
       .join('\n');
 
-    // Prioridade do título: manual > nome extraído do resultado > nome do
-    // arquivo anexado > (na criação) rótulo genérico.
     const tituloAuto = sugerirTituloExtracao(textoResposta);
     const tituloDoArquivo =
       tituloAuto === 'Atendimento sem título'
@@ -64,7 +78,7 @@ export async function POST(req: NextRequest) {
       atendimento = await prisma.atendimento.update({
         where: { id: atendimentoId },
         data: {
-          ...(tituloFinal ? { titulo: tituloFinal } : {}), // nunca sobrescreve com fallback genérico
+          ...(tituloFinal ? { titulo: tituloFinal } : {}),
           mensagens: {
             create: [
               { papel: 'user', conteudo: entradaResumo },
@@ -78,6 +92,8 @@ export async function POST(req: NextRequest) {
         data: {
           agente: 'URBANO',
           titulo: tituloFinal || 'Atendimento sem título',
+          tabelionatoId: sessao.tabelionatoId,
+          usuarioId: sessao.usuarioId,
           mensagens: {
             create: [
               { papel: 'user', conteudo: entradaResumo },

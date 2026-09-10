@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 type ItemHistorico = {
   id: string;
@@ -20,6 +20,7 @@ const ROTULO_AGENTE: Record<ItemHistorico['agente'], string> = {
 
 export default function HistoricoSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [q, setQ] = useState('');
   const [de, setDe] = useState('');
   const [ate, setAte] = useState('');
@@ -47,6 +48,12 @@ export default function HistoricoSidebar() {
     } finally {
       setCarregando(false);
     }
+  }
+
+  async function sair() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+    router.refresh();
   }
 
   return (
@@ -113,6 +120,13 @@ export default function HistoricoSidebar() {
           );
         })}
       </div>
+
+      <button
+        onClick={sair}
+        className="mt-4 text-xs text-ink-400 hover:text-wax text-left"
+      >
+        Sair
+      </button>
     </aside>
   );
 }

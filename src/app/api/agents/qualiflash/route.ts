@@ -4,17 +4,19 @@ import { anthropic, CLAUDE_MODEL, montarBlocosDeConteudo, AnexoUpload } from '@/
 import { QUALIFLASH_SYSTEM_PROMPT } from '@/lib/agents/prompts';
 import { sugerirTituloQualificacao } from '@/lib/agents/titulo';
 import { prisma } from '@/lib/prisma';
+import { pegarSessao } from '@/lib/auth';
 
 type MensagemHistorico = { papel: 'user' | 'assistant'; conteudo: string };
 
 // POST /api/agents/qualiflash
 // body: { historico, texto, anexos?, atendimentoId?, tituloManual? }
-//
-// Fluxo em chat: o agente pode perguntar dados faltantes antes de fechar a
-// qualificação. Cada turno salva as duas mensagens novas (usuário +
-// assistente) no mesmo Atendimento, criado no primeiro turno.
 export async function POST(req: NextRequest) {
   try {
+    const sessao = await pegarSessao();
+    if (!sessao) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
     const body = await req.json();
     const historico: MensagemHistorico[] = body.historico ?? [];
     const texto: string = body.texto ?? '';
@@ -27,6 +29,13 @@ export async function POST(req: NextRequest) {
         { error: 'Envie uma mensagem ou documento para iniciar.' },
         { status: 400 }
       );
+    }
+
+    if (atendimentoId) {
+      const existente = await prisma.atendimento.findUnique({ where: { id: atendimentoId } });
+      if (!existente || existente.tabelionatoId !== sessao.tabelionatoId) {
+        return NextResponse.json({ error: 'Atendimento não encontrado.' }, { status: 404 });
+      }
     }
 
     const mensagens: Anthropic.MessageParam[] = historico.map((m) => ({
@@ -54,9 +63,6 @@ export async function POST(req: NextRequest) {
       .map((b) => b.text)
       .join('\n');
 
-    // Prioridade: título manual > nome extraído da qualificação finalizada.
-    // Perguntas de esclarecimento no meio do caminho não têm o formato de
-    // qualificação pronta, então nesses turnos o título anterior é mantido.
     const tituloSugerido = sugerirTituloQualificacao(textoResposta);
     const pareceQualificacaoFinal = tituloSugerido !== 'Qualificação sem título';
     const tituloFinal = tituloManual || (pareceQualificacaoFinal ? tituloSugerido : undefined);
@@ -80,6 +86,8 @@ export async function POST(req: NextRequest) {
         data: {
           agente: 'QUALIFLASH',
           titulo: tituloFinal || 'Qualificação em andamento',
+          tabelionatoId: sessao.tabelionatoId,
+          usuarioId: sessao.usuarioId,
           mensagens: {
             create: [
               { papel: 'user', conteudo: entradaResumo },

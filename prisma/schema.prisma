@@ -85,9 +85,9 @@ model Atendimento {
   // periodicamente e apagar atendimentos com excluirEm < now().
   excluirEm      DateTime?
 
-  // Opcionais por enquanto: ainda não existe autenticação/multi-tenant.
-  // Quando a autenticação real for implementada, tornar obrigatórios de
-  // novo e preencher a partir da sessão do usuário logado.
+  // Ainda opcionais no schema (dados antigos de antes do login existir
+  // podem não ter esses campos), mas toda rota nova sempre preenche os
+  // dois a partir da sessão logada — ver src/lib/auth.ts.
   tabelionatoId  String?
   tabelionato    Tabelionato? @relation(fields: [tabelionatoId], references: [id])
 

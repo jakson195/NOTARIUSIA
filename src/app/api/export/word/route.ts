@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const buffer = await gerarDocxDeResultado(titulo, conteudo);
     const nomeArquivo = `${titulo.replace(/[^\p{L}\p{N} ]/gu, '').trim() || 'atendimento'}.docx`;
 
-return new NextResponse(new Uint8Array(buffer), {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Type':

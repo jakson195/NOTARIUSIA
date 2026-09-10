@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { pegarSessao } from '@/lib/auth';
 
-// GET /api/atendimentos/[id] — carrega um atendimento com todas as mensagens
-// (usado ao clicar em um item do histórico na barra lateral).
+// GET /api/atendimentos/[id] — carrega um atendimento com todas as mensagens.
+// Só retorna se o atendimento pertencer ao tabelionato da sessão.
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const sessao = await pegarSessao();
+    if (!sessao) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
     const atendimento = await prisma.atendimento.findUnique({
       where: { id: params.id },
       include: { mensagens: { orderBy: { createdAt: 'asc' } } },
     });
 
-    if (!atendimento) {
+    if (!atendimento || atendimento.tabelionatoId !== sessao.tabelionatoId) {
       return NextResponse.json({ error: 'Atendimento não encontrado.' }, { status: 404 });
     }
 
@@ -24,13 +30,22 @@ export async function GET(
   }
 }
 
-// PATCH /api/atendimentos/[id] — renomear o título (a sugestão automática
-// é só um ponto de partida; o escrivão pode ajustar livremente).
+// PATCH /api/atendimentos/[id] — renomear o título.
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const sessao = await pegarSessao();
+    if (!sessao) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
+    const existente = await prisma.atendimento.findUnique({ where: { id: params.id } });
+    if (!existente || existente.tabelionatoId !== sessao.tabelionatoId) {
+      return NextResponse.json({ error: 'Atendimento não encontrado.' }, { status: 404 });
+    }
+
     const body = await req.json();
     const titulo: string = body.titulo?.trim();
 

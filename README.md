@@ -13,6 +13,9 @@ personalizados para a API da Claude (Anthropic).
   certidões ambientais/fiscais, pessoas físicas e jurídicas).
 - **QualiFlash** (`/dashboard/qualiflash`): chat que monta a qualificação
   pessoal, perguntando dados faltantes antes de fechar o texto.
+- **Login** (`/login`): e-mail e senha reais, sessão em cookie, dados de
+  cada tabelionato isolados uns dos outros. Criação de acesso é feita por
+  você via `scripts/criar-usuario.js` (ver seção de autenticação abaixo).
 - Schema de banco de dados multi-tenant (`prisma/schema.prisma`): cada
   Tabelionato tem seus Usuários, Atendimentos e Mensagens isolados, com
   campo de plano e limite mensal.
@@ -30,18 +33,29 @@ npm run dev
 
 Acesse `http://localhost:3000`.
 
-## O que NÃO está pronto (e precisa antes de vender para clientes)
+## O que ainda falta antes de operar em escala
 
 Fui direto ao ponto no que faz o produto funcionar (os 3 agentes chamando a
 Claude corretamente) para você já poder testar. Mas para operar como SaaS
 com tabelionatos pagantes, faltam três blocos importantes:
 
-### 1. Autenticação real
-`/login` hoje é só um esqueleto visual (não tem sessão, não tem hashing de
-senha, não tem nada plugado no banco). Recomendo:
-- **Clerk** ou **Auth.js (NextAuth)** para login/sessão/e-mail de verificação
-- Isolar por `tabelionatoId` em toda query (o schema já foi desenhado
-  pensando nisso)
+### 1. Autenticação
+Login real por e-mail e senha, com sessão em cookie assinado (JWT via
+`jose`), protegendo `/dashboard/*` e as rotas de API — implementado.
+
+Não existe tela de cadastro ainda (por decisão de produto: você, como
+administrador, cria o acesso de cada tabelionato). Para criar um login:
+
+```bash
+node scripts/criar-usuario.js "Nome do Tabelionato" "email@cliente.com" "senha-temporaria" "Nome da Pessoa"
+```
+
+Isso cria o Tabelionato e o Usuário no banco, e imprime o e-mail/senha para
+você repassar ao cliente. Rode esse comando com a `DATABASE_URL` de
+produção no seu `.env` local.
+
+Próximo passo natural (ainda não implementado): tela de troca de senha, e
+talvez convite de mais de um usuário por tabelionato.
 
 ### 2. Cobrança e planos
 O campo `plano` e `limiteMensal` já existem no modelo `Tabelionato`, mas não
