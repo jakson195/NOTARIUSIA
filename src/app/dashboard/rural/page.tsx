@@ -7,6 +7,11 @@ import { exportarWord } from '@/lib/exportarWord';
 
 type Anexo = { tipo: 'pdf' | 'imagem'; mediaType: string; url: string; nome: string };
 
+const FRASES_RAPIDAS = [
+  'Extraia os dados conforme orientação da base e me informe ao final o que está pendente.',
+  'Confira a minuta com os dados enviados anteriormente e aponte divergências.',
+];
+
 export default function RuralPage() {
   const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [texto, setTexto] = useState('');
@@ -121,6 +126,18 @@ export default function RuralPage() {
         <label className="block text-sm font-medium text-ink-700 mt-4 mb-2">
           Observações / texto colado (opcional)
         </label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {FRASES_RAPIDAS.map((frase) => (
+            <button
+              key={frase}
+              type="button"
+              onClick={() => setTexto(frase)}
+              className="text-xs text-brass-dark border border-brass/40 rounded-full px-3 py-1.5 hover:bg-brass/10 transition-colors text-left"
+            >
+              {frase}
+            </button>
+          ))}
+        </div>
         <textarea
           value={texto}
           onChange={(e) => setTexto(e.target.value)}

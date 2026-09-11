@@ -28,6 +28,11 @@ const ENDPOINT_AGENTE: Record<Atendimento['agente'], string> = {
   QUALIFLASH: '/api/agents/qualiflash',
 };
 
+const FRASES_RAPIDAS = [
+  'Extraia os dados conforme orientação da base e me informe ao final o que está pendente.',
+  'Confira a minuta com os dados enviados anteriormente e aponte divergências.',
+];
+
 export default function HistoricoDetalhePage() {
   const params = useParams();
   const id = params.id as string;
@@ -300,6 +305,21 @@ export default function HistoricoDetalhePage() {
               <li key={i}>{a.nome}</li>
             ))}
           </ul>
+        )}
+
+        {!ehQualiFlash && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {FRASES_RAPIDAS.map((frase) => (
+              <button
+                key={frase}
+                type="button"
+                onClick={() => setTextoNovo(frase)}
+                className="text-xs text-brass-dark border border-brass/40 rounded-full px-3 py-1.5 hover:bg-brass/10 transition-colors text-left"
+              >
+                {frase}
+              </button>
+            ))}
+          </div>
         )}
 
         <textarea
