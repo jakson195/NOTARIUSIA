@@ -79,79 +79,18 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Ilustração / preview do produto — versão desenhada (não é foto) */}
+        {/* Foto real do hero, fornecida pelo cliente */}
         <div className="relative">
           <div
             aria-hidden
             className="pointer-events-none absolute -top-10 -right-10 w-64 h-64 rounded-full border border-brass/20"
           />
-
-          {/* "Mesa" — fundo com gradiente quente simulando luz ambiente */}
-          <div className="relative rounded-lg bg-gradient-to-br from-brass/15 via-paper-soft to-ink-100/40 p-8 md:p-10 overflow-hidden">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-40"
-              style={{
-                backgroundImage:
-                  'linear-gradient(120deg, transparent 40%, rgba(164,129,58,0.12) 50%, transparent 60%)',
-              }}
-            />
-
-            <div className="flex items-end gap-5">
-              {/* Pilha de "livros" rotulados, como na mesa */}
-              <div className="hidden sm:flex flex-col-reverse gap-1 pb-2">
-                {['AGILIDADE', 'SEGURANÇA', 'DOCUMENTOS', 'TABELIONATO'].map((rotulo, i) => (
-                  <span
-                    key={rotulo}
-                    className="text-[9px] tracking-wider font-sans font-medium text-paper-soft bg-ink-800 rounded-sm px-3 py-2 shadow-md"
-                    style={{ width: 118 - i * 6 }}
-                  >
-                    {rotulo}
-                  </span>
-                ))}
-              </div>
-
-              {/* Notebook, com leve inclinação para sugerir perspectiva */}
-              <div
-                className="flex-1 [transform:perspective(900px)_rotateY(-4deg)_rotateX(2deg)]"
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                <div className="bg-ink-800 rounded-t-md rounded-b-sm shadow-2xl p-2">
-                  <div className="flex items-center gap-1.5 px-2 py-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-paper-soft/30" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-paper-soft/30" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-paper-soft/30" />
-                  </div>
-                  <div className="bg-paper-soft rounded-sm p-5">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Logo tamanho={26} />
-                      <span className="font-serif text-sm text-ink-800 leading-tight">
-                        Agrimensura
-                        <br />
-                        Descomplicada
-                      </span>
-                    </div>
-                    <p className="text-[9px] tracking-widest text-brass-dark font-medium mt-2">
-                      TECNOLOGIA A FAVOR DA REGULARIZAÇÃO
-                    </p>
-                  </div>
-                </div>
-                {/* Base do notebook */}
-                <div className="h-2 bg-ink-700 rounded-b-md mx-1 shadow-lg" />
-              </div>
-            </div>
-
-            {/* "Papel" com uma escritura, saindo por baixo do notebook */}
-            <div className="hidden sm:block bg-paper-soft border border-ink-200 rounded-sm shadow-md px-4 py-3 mt-4 ml-10 max-w-[220px] -rotate-1">
-              <p className="text-[10px] tracking-wide text-ink-500 font-medium">ESCRITURA PÚBLICA</p>
-              <div className="h-1.5 bg-ink-100 rounded-full mt-2 w-full" />
-              <div className="h-1.5 bg-ink-100 rounded-full mt-1.5 w-3/4" />
-            </div>
-          </div>
-
-          <p className="font-serif italic text-ink-400 text-sm mt-5 text-right">
-            Tecnologia que simplifica a rotina real.
-          </p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero-notebook.jpg"
+            alt="Notebook com o Agrimensura Descomplicada aberto sobre uma mesa, ao lado de documentos e material de escritório"
+            className="relative w-full h-auto rounded-lg shadow-xl object-cover"
+          />
         </div>
       </section>
 
@@ -207,8 +146,16 @@ export default function Home() {
       </section>
 
       {/* BENEFÍCIOS */}
-      <section id="beneficios" className="relative px-6 md:px-10 py-20 bg-ink-800 text-paper-soft">
-        <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
+      <section id="beneficios" className="relative px-6 md:px-10 py-20 bg-ink-800 text-paper-soft overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-24 -left-24 w-72 h-72 rounded-full border border-brass/10"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-8 -left-8 w-48 h-48 rounded-full border border-brass/10"
+        />
+        <div className="relative max-w-5xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
           <div>
             <h2 className="font-serif text-3xl leading-tight">
               Tradição no registro.
@@ -319,7 +266,7 @@ function AgenteCard({
 }) {
   return (
     <div className="bg-ink-800 text-paper-soft rounded-sm p-7 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200">
-      <div className="w-11 h-11 rounded-sm bg-paper-soft/10 flex items-center justify-center text-brass">
+      <div className="w-11 h-11 rounded-sm bg-paper-soft flex items-center justify-center text-ink-800">
         {icone}
       </div>
       <h3 className="font-serif text-lg mt-5">{titulo}</h3>
@@ -357,13 +304,12 @@ function PassoItem({
 }) {
   return (
     <div className="text-center">
-      <div className="relative w-14 h-14 rounded-full bg-paper border border-brass/40 text-brass-dark flex items-center justify-center mx-auto shadow-sm">
+      <div className="w-14 h-14 rounded-full bg-paper border border-brass/30 text-brass-dark flex items-center justify-center mx-auto shadow-sm">
         {icone}
-        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-ink-800 text-paper-soft text-[10px] flex items-center justify-center font-medium">
-          {numero}
-        </span>
       </div>
-      <h3 className="font-serif text-base text-ink-800 mt-4">{titulo}</h3>
+      <h3 className="font-serif text-base text-ink-800 mt-4">
+        {numero}. {titulo}
+      </h3>
       <p className="text-sm text-ink-500 mt-1.5 leading-relaxed">{descricao}</p>
     </div>
   );
