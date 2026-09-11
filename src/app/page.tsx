@@ -18,10 +18,9 @@ export default function Home() {
       <nav className="sticky top-0 z-20 flex items-center justify-between gap-4 px-6 md:px-10 py-4 border-b border-ink-200/60 bg-paper/85 backdrop-blur-sm">
         <Link href="#inicio" className="flex items-center gap-2.5">
           <Logo tamanho={34} />
-          <span className="font-serif text-sm text-ink-800 leading-tight">
-            Agrimensura
-            <br />
-            Descomplicada
+          <span className="font-serif text-sm leading-tight">
+            <span className="block font-semibold text-ink-800">Agrimensura</span>
+            <span className="block text-brass-dark">Descomplicada</span>
           </span>
         </Link>
 
@@ -80,43 +79,74 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Ilustração / preview do produto */}
+        {/* Ilustração / preview do produto — versão desenhada (não é foto) */}
         <div className="relative">
           <div
             aria-hidden
             className="pointer-events-none absolute -top-10 -right-10 w-64 h-64 rounded-full border border-brass/20"
           />
-          <div className="relative bg-ink-800 rounded-md shadow-xl p-2">
-            <div className="flex items-center gap-1.5 px-2 py-2">
-              <span className="w-2 h-2 rounded-full bg-paper-soft/30" />
-              <span className="w-2 h-2 rounded-full bg-paper-soft/30" />
-              <span className="w-2 h-2 rounded-full bg-paper-soft/30" />
-            </div>
-            <div className="bg-paper-soft rounded-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Logo tamanho={22} />
-                <span className="font-serif text-sm text-ink-800">Agrimensura Descomplicada</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {['NotariusIA-Urbano', 'NotariusIA-Rural', 'QualiFlash'].map((nome) => (
-                  <div key={nome} className="border border-ink-200 rounded-sm px-3 py-2.5 text-sm text-ink-700">
-                    {nome}
-                  </div>
+
+          {/* "Mesa" — fundo com gradiente quente simulando luz ambiente */}
+          <div className="relative rounded-lg bg-gradient-to-br from-brass/15 via-paper-soft to-ink-100/40 p-8 md:p-10 overflow-hidden">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-40"
+              style={{
+                backgroundImage:
+                  'linear-gradient(120deg, transparent 40%, rgba(164,129,58,0.12) 50%, transparent 60%)',
+              }}
+            />
+
+            <div className="flex items-end gap-5">
+              {/* Pilha de "livros" rotulados, como na mesa */}
+              <div className="hidden sm:flex flex-col-reverse gap-1 pb-2">
+                {['AGILIDADE', 'SEGURANÇA', 'DOCUMENTOS', 'TABELIONATO'].map((rotulo, i) => (
+                  <span
+                    key={rotulo}
+                    className="text-[9px] tracking-wider font-sans font-medium text-paper-soft bg-ink-800 rounded-sm px-3 py-2 shadow-md"
+                    style={{ width: 118 - i * 6 }}
+                  >
+                    {rotulo}
+                  </span>
                 ))}
               </div>
-            </div>
-          </div>
 
-          <div className="hidden md:flex flex-col gap-1.5 absolute -left-6 top-1/3">
-            {['TABELIONATO', 'DOCUMENTOS', 'SEGURANÇA', 'AGILIDADE'].map((rotulo, i) => (
-              <span
-                key={rotulo}
-                className="text-[10px] tracking-wide font-sans text-paper-soft bg-ink-800 rounded-sm px-3 py-1.5 shadow-md"
-                style={{ marginLeft: i * 10 }}
+              {/* Notebook, com leve inclinação para sugerir perspectiva */}
+              <div
+                className="flex-1 [transform:perspective(900px)_rotateY(-4deg)_rotateX(2deg)]"
+                style={{ transformStyle: 'preserve-3d' }}
               >
-                {rotulo}
-              </span>
-            ))}
+                <div className="bg-ink-800 rounded-t-md rounded-b-sm shadow-2xl p-2">
+                  <div className="flex items-center gap-1.5 px-2 py-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-paper-soft/30" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-paper-soft/30" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-paper-soft/30" />
+                  </div>
+                  <div className="bg-paper-soft rounded-sm p-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Logo tamanho={26} />
+                      <span className="font-serif text-sm text-ink-800 leading-tight">
+                        Agrimensura
+                        <br />
+                        Descomplicada
+                      </span>
+                    </div>
+                    <p className="text-[9px] tracking-widest text-brass-dark font-medium mt-2">
+                      TECNOLOGIA A FAVOR DA REGULARIZAÇÃO
+                    </p>
+                  </div>
+                </div>
+                {/* Base do notebook */}
+                <div className="h-2 bg-ink-700 rounded-b-md mx-1 shadow-lg" />
+              </div>
+            </div>
+
+            {/* "Papel" com uma escritura, saindo por baixo do notebook */}
+            <div className="hidden sm:block bg-paper-soft border border-ink-200 rounded-sm shadow-md px-4 py-3 mt-4 ml-10 max-w-[220px] -rotate-1">
+              <p className="text-[10px] tracking-wide text-ink-500 font-medium">ESCRITURA PÚBLICA</p>
+              <div className="h-1.5 bg-ink-100 rounded-full mt-2 w-full" />
+              <div className="h-1.5 bg-ink-100 rounded-full mt-1.5 w-3/4" />
+            </div>
           </div>
 
           <p className="font-serif italic text-ink-400 text-sm mt-5 text-right">
@@ -164,10 +194,13 @@ export default function Home() {
           </h2>
           <p className="text-ink-500 mt-2">Simples, rápido e seguro.</p>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mt-14">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] gap-x-2 gap-y-10 mt-14 items-start">
             <PassoItem icone={<IconeUpload />} numero="1" titulo="Envie os documentos" descricao="PDF, fotos ou imagens." />
+            <SetaPasso />
             <PassoItem icone={<IconeLupa />} numero="2" titulo="A IA lê e confere" descricao="Extrai e organiza os dados conforme a rotina da serventia." />
+            <SetaPasso />
             <PassoItem icone={<IconeLista />} numero="3" titulo="Dados organizados" descricao="Lista pronta, na ordem da minuta." />
+            <SetaPasso />
             <PassoItem icone={<IconeCheck />} numero="4" titulo="Resultado em minutos" descricao="Mais agilidade e segurança no atendimento." />
           </div>
         </div>
@@ -297,6 +330,16 @@ function AgenteCard({
       >
         Acessar assistente →
       </Link>
+    </div>
+  );
+}
+
+function SetaPasso() {
+  return (
+    <div className="hidden lg:flex items-center justify-center pt-6 text-brass/50">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <path d="M4 12h15M13 6l6 6-6 6" />
+      </svg>
     </div>
   );
 }
