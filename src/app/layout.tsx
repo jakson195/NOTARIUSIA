@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'NotariusIA',
+  title: 'Agrimensura Descomplicada',
   description: 'Assistentes de IA para tabelionatos — extração e qualificação de documentos.',
 };
 

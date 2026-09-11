@@ -1,4 +1,4 @@
-# NotariusIA
+# Agrimensura Descomplicada — NotariusIA
 
 Plataforma web com os assistentes de IA do tabelionato, migrados dos GPTs
 personalizados para a API da Claude (Anthropic).
