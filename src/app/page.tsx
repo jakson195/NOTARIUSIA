@@ -140,7 +140,7 @@ export default function Home() {
             <SetaPasso />
             <PassoItem icone={<IconeLista />} numero="3" titulo="Dados organizados" descricao="Lista pronta, na ordem da minuta." />
             <SetaPasso />
-            <PassoItem icone={<IconeCheck />} numero="4" titulo="Resultado em minutos" descricao="Mais agilidade e segurança no atendimento." />
+           <PassoItem icone={<IconeCheck />} numero="4" titulo="Conferência de minuta" descricao="Mais agilidade e segurança no atendimento." />
           </div>
         </div>
       </section>
