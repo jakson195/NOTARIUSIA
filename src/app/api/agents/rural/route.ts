@@ -46,7 +46,10 @@ export async function POST(req: NextRequest) {
     const resposta = await anthropic.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: 8000,
-      system: RURAL_SYSTEM_PROMPT,
+      // Ver comentário equivalente na rota do Urbano — cache de prompt.
+      system: [
+        { type: 'text', text: RURAL_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+      ] as any,
       messages: [
         {
           role: 'user',

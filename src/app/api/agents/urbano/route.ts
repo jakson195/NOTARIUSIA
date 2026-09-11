@@ -46,7 +46,15 @@ export async function POST(req: NextRequest) {
     const resposta = await anthropic.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: 8000,
-      system: URBANO_SYSTEM_PROMPT,
+      // Cache de prompt: esse system prompt é enorme e reenviado em toda
+      // chamada. Marcá-lo como cacheável faz a Claude reaproveitar esse
+      // processamento em chamadas próximas (janela de 5 minutos) — ajuda
+      // bastante no fluxo de documentos enviados em etapas, além de
+      // reduzir custo. Tipado como `any` porque essa versão da SDK ainda
+      // não tem o cache_control no tipo do parâmetro `system`.
+      system: [
+        { type: 'text', text: URBANO_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+      ] as any,
       messages: [
         {
           role: 'user',
