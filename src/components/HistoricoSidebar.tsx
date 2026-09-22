@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import Logo from '@/components/Logo';
 
 type ItemHistorico = {
   id: string;
@@ -60,10 +59,7 @@ export default function HistoricoSidebar() {
   return (
     <aside className="w-72 shrink-0 border-r border-ink-200 bg-paper-soft min-h-screen px-4 py-6 hidden md:flex md:flex-col">
       <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-        <Logo tamanho={22} />
-        <span className="text-brass-dark font-sans text-xs tracking-wide">
-          Agrimensura Descomplicada
-        </span>
+        <span className="font-serif text-lg text-ink-800 tracking-tight">NotariusIA</span>
       </Link>
       <h2 className="font-serif text-lg text-ink-800 mt-1 mb-4">Histórico</h2>
 
@@ -127,7 +123,7 @@ export default function HistoricoSidebar() {
 
       <button
         onClick={sair}
-        className="mt-4 text-xs text-ink-400 hover:text-wax text-left"
+        className="mt-4 text-sm text-ink-500 hover:text-wax hover:border-wax/40 border border-ink-200 rounded-sm px-3 py-2 text-left transition-colors"
       >
         Sair
       </button>
