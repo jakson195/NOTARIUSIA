@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Logo from '@/components/Logo';
 
 const agentes = [
   {
@@ -30,10 +29,7 @@ export default function Dashboard() {
     <main className="min-h-screen px-6 py-12 md:py-16 max-w-4xl mx-auto">
       <header className="mb-10">
         <Link href="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Logo tamanho={26} />
-          <span className="text-brass-dark font-sans text-sm tracking-wide">
-            Agrimensura Descomplicada
-          </span>
+          <span className="font-serif text-xl text-ink-800 tracking-tight">NotariusIA</span>
         </Link>
         <h1 className="font-serif text-3xl text-ink-800 mt-1">Escolha um assistente</h1>
       </header>

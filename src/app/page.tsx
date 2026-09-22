@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Logo from '@/components/Logo';
 
 const LINKS_NAV = [
   { href: '#inicio', label: 'Início' },
@@ -17,11 +16,7 @@ export default function Home() {
       {/* NAV */}
       <nav className="sticky top-0 z-20 flex items-center justify-between gap-4 px-6 md:px-10 py-4 border-b border-ink-200/60 bg-paper/85 backdrop-blur-sm">
         <Link href="#inicio" className="flex items-center gap-2.5">
-          <Logo tamanho={34} />
-          <span className="font-serif text-sm leading-tight">
-            <span className="block font-semibold text-ink-800">Agrimensura</span>
-            <span className="block text-brass-dark">Descomplicada</span>
-          </span>
+          <span className="font-serif text-lg font-semibold text-ink-800 tracking-tight">NotariusIA</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
@@ -88,7 +83,7 @@ export default function Home() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/hero-notebook.jpg"
-            alt="Notebook com o Agrimensura Descomplicada aberto sobre uma mesa, ao lado de documentos e material de escritório"
+            alt="Notebook com o NotariusIA aberto sobre uma mesa, ao lado de documentos e material de escritório"
             className="relative w-full h-auto rounded-lg shadow-xl object-cover"
           />
         </div>
@@ -163,7 +158,7 @@ export default function Home() {
               Inovação na prática.
             </h2>
             <p className="mt-4 text-paper-soft/70 max-w-md">
-              O Agrimensura Descomplicada desenvolve soluções em IA para tornar o
+              O NotariusIA desenvolve soluções em IA para tornar o
               trabalho do tabelionato mais simples, rápido e seguro, respeitando a
               técnica e a rotina da serventia.
             </p>
@@ -214,9 +209,8 @@ export default function Home() {
       <footer className="relative px-6 md:px-10 py-10 border-t border-ink-200/60 bg-paper-soft/50">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <div className="flex items-center gap-2.5">
-            <Logo tamanho={28} />
             <span className="font-serif text-sm text-ink-800 leading-tight">
-              Agrimensura Descomplicada
+              NotariusIA
             </span>
           </div>
           <p className="text-xs text-ink-400">Tecnologia a favor da regularização.</p>

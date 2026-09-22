@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Logo from '@/components/Logo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,10 +35,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-sm border border-ink-200 bg-paper-soft rounded-sm p-8">
         <div className="flex items-center gap-2 mb-1">
-          <Logo tamanho={24} />
-          <span className="text-brass-dark font-sans text-xs tracking-wide">
-            Agrimensura Descomplicada
-          </span>
+          <span className="font-serif text-lg text-ink-800 tracking-tight">NotariusIA</span>
         </div>
         <h1 className="font-serif text-2xl text-ink-800 mt-1 mb-6">Entrar</h1>
 
