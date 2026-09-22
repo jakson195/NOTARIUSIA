@@ -12,6 +12,8 @@ export default function QualiFlashPage() {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [texto, setTexto] = useState('');
   const [tituloManual, setTituloManual] = useState('');
+  const [nomeProjeto, setNomeProjeto] = useState('');
+  const [conferente, setConferente] = useState('');
   const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [carregando, setCarregando] = useState(false);
@@ -70,6 +72,8 @@ export default function QualiFlashPage() {
           anexos: anexosEnviados.map(({ tipo, mediaType, url, nome }) => ({ tipo, mediaType, url, nome })),
           atendimentoId: atendimentoId ?? undefined,
           tituloManual: tituloManual.trim() || undefined,
+          nomeProjeto: nomeProjeto.trim() || undefined,
+          conferente: conferente.trim() || undefined,
         }),
       });
       const data = await resp.json();
@@ -98,11 +102,27 @@ export default function QualiFlashPage() {
         histórico da conversa.
       </p>
 
+      <div className="grid sm:grid-cols-2 gap-3 mt-3">
+        <input
+          type="text"
+          value={tituloManual}
+          onChange={(e) => setTituloManual(e.target.value)}
+          placeholder="Nome do atendimento (opcional) — deixe em branco para sugestão automática"
+          className="w-full border border-ink-200 rounded-sm p-2 text-sm"
+        />
+        <input
+          type="text"
+          value={nomeProjeto}
+          onChange={(e) => setNomeProjeto(e.target.value)}
+          placeholder="Nome do projeto (opcional)"
+          className="w-full border border-ink-200 rounded-sm p-2 text-sm"
+        />
+      </div>
       <input
         type="text"
-        value={tituloManual}
-        onChange={(e) => setTituloManual(e.target.value)}
-        placeholder="Nome do atendimento (opcional) — deixe em branco para sugestão automática"
+        value={conferente}
+        onChange={(e) => setConferente(e.target.value)}
+        placeholder="Conferente do projeto (opcional)"
         className="w-full border border-ink-200 rounded-sm p-2 text-sm mt-3"
       />
 
@@ -171,7 +191,7 @@ export default function QualiFlashPage() {
 
       {mensagens.length > 0 && (
         <button
-          onClick={() => { setMensagens([]); setAtendimentoId(null); setTituloManual(''); }}
+          onClick={() => { setMensagens([]); setAtendimentoId(null); setTituloManual(''); setNomeProjeto(''); setConferente(''); }}
           className="mt-4 text-xs text-ink-400 hover:text-wax self-start"
         >
           Encerrar e apagar esta conversa

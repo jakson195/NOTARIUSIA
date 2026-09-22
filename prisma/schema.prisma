@@ -94,6 +94,9 @@ model Atendimento {
   usuarioId      String?
   usuario        Usuario? @relation(fields: [usuarioId], references: [id])
 
+  nomeProjeto    String?
+  conferente     String?
+
   mensagens      Mensagem[]
 
   @@index([titulo])
@@ -112,3 +115,4 @@ model Mensagem {
   conteudo       String   // texto (resultado, pergunta, resposta etc.)
   createdAt      DateTime @default(now())
 }
+

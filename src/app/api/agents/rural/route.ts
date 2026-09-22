@@ -6,8 +6,8 @@ import { sugerirTituloExtracao, sugerirTituloDeArquivo } from '@/lib/agents/titu
 import { prisma } from '@/lib/prisma';
 import { pegarSessao } from '@/lib/auth';
 
-// POST /api/agents/urbano
-// body: { texto?, anexos: AnexoUpload[], respostaAnterior?, atendimentoId?, tituloManual? }
+// POST /api/agents/rural
+// body: { texto?, anexos: AnexoUpload[], respostaAnterior?, atendimentoId?, tituloManual?, nomeProjeto?, conferente? }
 export async function POST(req: NextRequest) {
   try {
     const sessao = await pegarSessao();
@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
     const respostaAnterior: string | undefined = body.respostaAnterior;
     const atendimentoId: string | undefined = body.atendimentoId;
     const tituloManual: string | undefined = body.tituloManual?.trim();
+    const nomeProjeto: string | undefined = body.nomeProjeto?.trim();
+    const conferente: string | undefined = body.conferente?.trim();
 
     if (!texto && anexos.length === 0) {
       return NextResponse.json(
@@ -82,6 +84,8 @@ export async function POST(req: NextRequest) {
         where: { id: atendimentoId },
         data: {
           ...(tituloFinal ? { titulo: tituloFinal } : {}),
+          ...(nomeProjeto !== undefined ? { nomeProjeto } : {}),
+          ...(conferente !== undefined ? { conferente } : {}),
           mensagens: {
             create: [
               { papel: 'user', conteudo: entradaResumo },
@@ -95,6 +99,8 @@ export async function POST(req: NextRequest) {
         data: {
           agente: 'RURAL',
           titulo: tituloFinal || 'Atendimento sem título',
+          nomeProjeto: nomeProjeto || null,
+          conferente: conferente || null,
           tabelionatoId: sessao.tabelionatoId,
           usuarioId: sessao.usuarioId,
           mensagens: {

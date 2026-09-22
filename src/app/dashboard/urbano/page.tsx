@@ -16,6 +16,8 @@ export default function UrbanoPage() {
   const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [texto, setTexto] = useState('');
   const [tituloManual, setTituloManual] = useState('');
+  const [nomeProjeto, setNomeProjeto] = useState('');
+  const [conferente, setConferente] = useState('');
   const [enviandoArquivo, setEnviandoArquivo] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
@@ -62,6 +64,8 @@ export default function UrbanoPage() {
           respostaAnterior: resultado ?? undefined,
           atendimentoId: atendimentoId ?? undefined,
           tituloManual: tituloManual.trim() || undefined,
+          nomeProjeto: nomeProjeto.trim() || undefined,
+          conferente: conferente.trim() || undefined,
         }),
       });
       const data = await resp.json();
@@ -92,14 +96,42 @@ export default function UrbanoPage() {
       </p>
 
       <section className="mt-6 border border-ink-200 bg-paper-soft rounded-sm p-5">
+        <div className="grid sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-ink-700 mb-2">
+              Nome do atendimento (opcional)
+            </label>
+            <input
+              type="text"
+              value={tituloManual}
+              onChange={(e) => setTituloManual(e.target.value)}
+              placeholder="Ex: Silva x Pereira — deixe em branco para sugestão automática"
+              className="w-full border border-ink-200 rounded-sm p-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink-700 mb-2">
+              Nome do projeto (opcional)
+            </label>
+            <input
+              type="text"
+              value={nomeProjeto}
+              onChange={(e) => setNomeProjeto(e.target.value)}
+              placeholder="Ex: Loteamento Vista Verde"
+              className="w-full border border-ink-200 rounded-sm p-2 text-sm"
+            />
+          </div>
+        </div>
+
         <label className="block text-sm font-medium text-ink-700 mb-2">
-          Nome do atendimento (opcional)
+          Conferente do projeto (opcional)
         </label>
         <input
           type="text"
-          value={tituloManual}
-          onChange={(e) => setTituloManual(e.target.value)}
-          placeholder="Ex: Silva x Pereira — deixe em branco para sugestão automática"
+          value={conferente}
+          onChange={(e) => setConferente(e.target.value)}
+          placeholder="Nome de quem conferiu o projeto no cartório"
           className="w-full border border-ink-200 rounded-sm p-2 text-sm mb-4"
         />
 

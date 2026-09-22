@@ -9,7 +9,7 @@ import { pegarSessao } from '@/lib/auth';
 type MensagemHistorico = { papel: 'user' | 'assistant'; conteudo: string };
 
 // POST /api/agents/qualiflash
-// body: { historico, texto, anexos?, atendimentoId?, tituloManual? }
+// body: { historico, texto, anexos?, atendimentoId?, tituloManual?, nomeProjeto?, conferente? }
 export async function POST(req: NextRequest) {
   try {
     const sessao = await pegarSessao();
@@ -23,6 +23,8 @@ export async function POST(req: NextRequest) {
     const anexos: AnexoUpload[] = body.anexos ?? [];
     const atendimentoId: string | undefined = body.atendimentoId;
     const tituloManual: string | undefined = body.tituloManual?.trim();
+    const nomeProjeto: string | undefined = body.nomeProjeto?.trim();
+    const conferente: string | undefined = body.conferente?.trim();
 
     if (!texto && anexos.length === 0 && historico.length === 0) {
       return NextResponse.json(
@@ -76,6 +78,8 @@ export async function POST(req: NextRequest) {
         where: { id: atendimentoId },
         data: {
           ...(tituloFinal ? { titulo: tituloFinal } : {}),
+          ...(nomeProjeto !== undefined ? { nomeProjeto } : {}),
+          ...(conferente !== undefined ? { conferente } : {}),
           mensagens: {
             create: [
               { papel: 'user', conteudo: entradaResumo },
@@ -89,6 +93,8 @@ export async function POST(req: NextRequest) {
         data: {
           agente: 'QUALIFLASH',
           titulo: tituloFinal || 'Qualificação em andamento',
+          nomeProjeto: nomeProjeto || null,
+          conferente: conferente || null,
           tabelionatoId: sessao.tabelionatoId,
           usuarioId: sessao.usuarioId,
           mensagens: {
