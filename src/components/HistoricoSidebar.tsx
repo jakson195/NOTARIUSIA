@@ -18,6 +18,23 @@ const ROTULO_AGENTE: Record<ItemHistorico['agente'], string> = {
   QUALIFLASH: 'QualiFlash',
 };
 
+// Chave de agrupamento por mês, ex: "2026-09". Usa a data de criação —
+// se quiser agrupar pela data de conclusão seria preciso guardar um
+// campo separado no banco; por ora usamos createdAt, que já existe.
+function chaveMes(dataISO: string): string {
+  const d = new Date(dataISO);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function rotuloMes(chave: string): string {
+  const [ano, mes] = chave.split('-').map(Number);
+  const nome = new Date(ano, mes - 1, 1).toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  });
+  return nome.charAt(0).toUpperCase() + nome.slice(1);
+}
+
 export default function HistoricoSidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -111,6 +128,68 @@ export default function HistoricoSidebar() {
     }
   }
 
+  function ItemLinha({ item }: { item: ItemHistorico }) {
+    const ativo = pathname === `/dashboard/historico/${item.id}`;
+    return (
+      <Link
+        href={`/dashboard/historico/${item.id}`}
+        className={`group block rounded-sm px-2 py-2 text-sm border ${
+          ativo
+            ? 'border-brass bg-brass/10'
+            : 'border-transparent hover:border-ink-200 hover:bg-white'
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <button
+              onClick={(e) => alternarConcluido(e, item)}
+              title={item.status === 'CONCLUIDO' ? 'Marcar como em andamento' : 'Marcar como concluído'}
+              className={`shrink-0 w-4 h-4 rounded-full border flex items-center justify-center text-[10px] leading-none transition-colors ${
+                item.status === 'CONCLUIDO'
+                  ? 'bg-brass border-brass text-white'
+                  : 'border-ink-300 text-transparent hover:border-brass'
+              }`}
+            >
+              ✓
+            </button>
+            <span
+              className={`truncate ${
+                item.status === 'CONCLUIDO' ? 'text-ink-400 line-through' : 'text-ink-800'
+              }`}
+            >
+              {item.titulo}
+            </span>
+          </div>
+          <button
+            onClick={(e) => excluir(e, item.id)}
+            className="shrink-0 text-ink-300 hover:text-wax text-xs opacity-0 group-hover:opacity-100 transition-opacity px-1"
+            title="Excluir atendimento"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-[11px] text-brass-dark">{ROTULO_AGENTE[item.agente]}</span>
+          <span className="text-[11px] text-ink-400">
+            {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+          </span>
+        </div>
+      </Link>
+    );
+  }
+
+  const emAndamento = itens.filter((i) => i.status !== 'CONCLUIDO');
+  const finalizados = itens.filter((i) => i.status === 'CONCLUIDO');
+
+  // Agrupa finalizados por mês (chave "AAAA-MM"), meses mais recentes primeiro.
+  const gruposMes = new Map<string, ItemHistorico[]>();
+  for (const item of finalizados) {
+    const chave = chaveMes(item.createdAt);
+    if (!gruposMes.has(chave)) gruposMes.set(chave, []);
+    gruposMes.get(chave)!.push(item);
+  }
+  const mesesOrdenados = Array.from(gruposMes.keys()).sort((a, b) => (a < b ? 1 : -1));
+
   return (
     <aside className="w-72 shrink-0 border-r border-ink-200 bg-paper-soft min-h-screen px-4 py-6 hidden md:flex md:flex-col">
       <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -150,56 +229,34 @@ export default function HistoricoSidebar() {
         {!carregando && itens.length === 0 && (
           <p className="text-xs text-ink-400">Nenhum atendimento encontrado.</p>
         )}
-        {itens.map((item) => {
-          const ativo = pathname === `/dashboard/historico/${item.id}`;
-          return (
-            <Link
-              key={item.id}
-              href={`/dashboard/historico/${item.id}`}
-              className={`group block rounded-sm px-2 py-2 text-sm border ${
-                ativo
-                  ? 'border-brass bg-brass/10'
-                  : 'border-transparent hover:border-ink-200 hover:bg-white'
-              }`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <button
-                    onClick={(e) => alternarConcluido(e, item)}
-                    title={item.status === 'CONCLUIDO' ? 'Marcar como em andamento' : 'Marcar como concluído'}
-                    className={`shrink-0 w-4 h-4 rounded-full border flex items-center justify-center text-[10px] leading-none transition-colors ${
-                      item.status === 'CONCLUIDO'
-                        ? 'bg-brass border-brass text-white'
-                        : 'border-ink-300 text-transparent hover:border-brass'
-                    }`}
-                  >
-                    ✓
-                  </button>
-                  <span
-                    className={`truncate ${
-                      item.status === 'CONCLUIDO' ? 'text-ink-400 line-through' : 'text-ink-800'
-                    }`}
-                  >
-                    {item.titulo}
+
+        {emAndamento.map((item) => (
+          <ItemLinha key={item.id} item={item} />
+        ))}
+
+        {finalizados.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-ink-200">
+            <p className="text-[11px] font-medium text-ink-400 uppercase tracking-wide px-2 mb-1">
+              Finalizados
+            </p>
+            {mesesOrdenados.map((chave, i) => (
+              <details key={chave} open={i === 0} className="group/mes px-0">
+                <summary className="cursor-pointer list-none flex items-center justify-between px-2 py-1.5 text-xs text-ink-600 hover:text-ink-800 rounded-sm hover:bg-white">
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-ink-400 transition-transform group-open/mes:rotate-90">▸</span>
+                    {rotuloMes(chave)}
                   </span>
+                  <span className="text-ink-400">{gruposMes.get(chave)!.length}</span>
+                </summary>
+                <div className="flex flex-col gap-1 mt-1">
+                  {gruposMes.get(chave)!.map((item) => (
+                    <ItemLinha key={item.id} item={item} />
+                  ))}
                 </div>
-                <button
-                  onClick={(e) => excluir(e, item.id)}
-                  className="shrink-0 text-ink-300 hover:text-wax text-xs opacity-0 group-hover:opacity-100 transition-opacity px-1"
-                  title="Excluir atendimento"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[11px] text-brass-dark">{ROTULO_AGENTE[item.agente]}</span>
-                <span className="text-[11px] text-ink-400">
-                  {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-            </Link>
-          );
-        })}
+              </details>
+            ))}
+          </div>
+        )}
       </div>
 
       <button
