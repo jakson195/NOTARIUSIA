@@ -56,6 +56,32 @@ export default function HistoricoSidebar() {
     router.refresh();
   }
 
+  async function alternarConcluido(e: React.MouseEvent, item: ItemHistorico) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const novoStatus = item.status === 'CONCLUIDO' ? 'EM_ANDAMENTO' : 'CONCLUIDO';
+
+    // Atualiza a tela na hora (otimista) e desfaz se a chamada falhar.
+    setItens((atuais) =>
+      atuais.map((i) => (i.id === item.id ? { ...i, status: novoStatus } : i))
+    );
+
+    try {
+      const resp = await fetch(`/api/atendimentos/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: novoStatus }),
+      });
+      if (!resp.ok) throw new Error('Falha ao atualizar status.');
+    } catch {
+      setItens((atuais) =>
+        atuais.map((i) => (i.id === item.id ? { ...i, status: item.status } : i))
+      );
+      alert('Não foi possível atualizar o status. Tente novamente.');
+    }
+  }
+
   async function excluir(e: React.MouseEvent, id: string) {
     e.preventDefault();
     e.stopPropagation();
@@ -137,7 +163,26 @@ export default function HistoricoSidebar() {
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-ink-800">{item.titulo}</span>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <button
+                    onClick={(e) => alternarConcluido(e, item)}
+                    title={item.status === 'CONCLUIDO' ? 'Marcar como em andamento' : 'Marcar como concluído'}
+                    className={`shrink-0 w-4 h-4 rounded-full border flex items-center justify-center text-[10px] leading-none transition-colors ${
+                      item.status === 'CONCLUIDO'
+                        ? 'bg-brass border-brass text-white'
+                        : 'border-ink-300 text-transparent hover:border-brass'
+                    }`}
+                  >
+                    ✓
+                  </button>
+                  <span
+                    className={`truncate ${
+                      item.status === 'CONCLUIDO' ? 'text-ink-400 line-through' : 'text-ink-800'
+                    }`}
+                  >
+                    {item.titulo}
+                  </span>
+                </div>
                 <button
                   onClick={(e) => excluir(e, item.id)}
                   className="shrink-0 text-ink-300 hover:text-wax text-xs opacity-0 group-hover:opacity-100 transition-opacity px-1"

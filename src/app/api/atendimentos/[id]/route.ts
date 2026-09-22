@@ -30,7 +30,11 @@ export async function GET(
   }
 }
 
-// PATCH /api/atendimentos/[id] — renomear o título.
+// PATCH /api/atendimentos/[id] — renomear o título e/ou mudar o status
+// (ex: marcar como concluído). Envie só o que quiser alterar no corpo:
+// { titulo?: string, status?: 'EM_ANDAMENTO' | 'CONCLUIDO' | 'ARQUIVADO' }
+const STATUS_VALIDOS = ['EM_ANDAMENTO', 'CONCLUIDO', 'ARQUIVADO'];
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -47,21 +51,28 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const titulo: string = body.titulo?.trim();
+    const titulo: string | undefined = body.titulo?.trim();
+    const status: string | undefined = body.status;
 
-    if (!titulo) {
+    if (body.titulo !== undefined && !titulo) {
       return NextResponse.json({ error: 'Título não pode ficar vazio.' }, { status: 400 });
+    }
+    if (status !== undefined && !STATUS_VALIDOS.includes(status)) {
+      return NextResponse.json({ error: 'Status inválido.' }, { status: 400 });
     }
 
     const atendimento = await prisma.atendimento.update({
       where: { id: params.id },
-      data: { titulo },
+      data: {
+        ...(titulo ? { titulo } : {}),
+        ...(status ? { status: status as any } : {}),
+      },
     });
 
     return NextResponse.json({ atendimento });
   } catch (err) {
-    console.error('[Histórico] erro ao renomear atendimento:', err);
-    return NextResponse.json({ error: 'Erro ao renomear.' }, { status: 500 });
+    console.error('[Histórico] erro ao atualizar atendimento:', err);
+    return NextResponse.json({ error: 'Erro ao atualizar.' }, { status: 500 });
   }
 }
 
