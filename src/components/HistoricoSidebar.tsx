@@ -56,6 +56,35 @@ export default function HistoricoSidebar() {
     router.refresh();
   }
 
+  async function excluir(e: React.MouseEvent, id: string) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const senha = window.prompt('Digite a senha para excluir este atendimento:');
+    if (senha === null) return; // cancelou
+
+    if (senha !== '1234') {
+      alert('Senha incorreta. Atendimento não excluído.');
+      return;
+    }
+
+    const confirmar = window.confirm('Tem certeza que deseja excluir este atendimento? Esta ação não pode ser desfeita.');
+    if (!confirmar) return;
+
+    try {
+      const resp = await fetch(`/api/atendimentos/${id}`, { method: 'DELETE' });
+      if (!resp.ok) throw new Error('Falha ao excluir.');
+
+      setItens((atuais) => atuais.filter((item) => item.id !== id));
+
+      if (pathname === `/dashboard/historico/${id}`) {
+        router.push('/dashboard');
+      }
+    } catch {
+      alert('Não foi possível excluir o atendimento. Tente novamente.');
+    }
+  }
+
   return (
     <aside className="w-72 shrink-0 border-r border-ink-200 bg-paper-soft min-h-screen px-4 py-6 hidden md:flex md:flex-col">
       <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -101,7 +130,7 @@ export default function HistoricoSidebar() {
             <Link
               key={item.id}
               href={`/dashboard/historico/${item.id}`}
-              className={`block rounded-sm px-2 py-2 text-sm border ${
+              className={`group block rounded-sm px-2 py-2 text-sm border ${
                 ativo
                   ? 'border-brass bg-brass/10'
                   : 'border-transparent hover:border-ink-200 hover:bg-white'
@@ -109,6 +138,13 @@ export default function HistoricoSidebar() {
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="truncate text-ink-800">{item.titulo}</span>
+                <button
+                  onClick={(e) => excluir(e, item.id)}
+                  className="shrink-0 text-ink-300 hover:text-wax text-xs opacity-0 group-hover:opacity-100 transition-opacity px-1"
+                  title="Excluir atendimento"
+                >
+                  ✕
+                </button>
               </div>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-[11px] text-brass-dark">{ROTULO_AGENTE[item.agente]}</span>

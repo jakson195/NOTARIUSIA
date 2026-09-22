@@ -64,3 +64,37 @@ export async function PATCH(
     return NextResponse.json({ error: 'Erro ao renomear.' }, { status: 500 });
   }
 }
+
+// DELETE /api/atendimentos/[id] — exclui definitivamente o atendimento e suas
+// mensagens. Restrito ao tabelionato da sessão (não dá pra apagar dado de
+// outro tenant). A confirmação por senha acontece no front-end antes de
+// chamar esta rota; aqui só reforçamos a checagem de que o usuário está
+// autenticado e que o atendimento pertence ao tabelionato dele.
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const sessao = await pegarSessao();
+    if (!sessao) {
+      return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
+    const existente = await prisma.atendimento.findUnique({ where: { id: params.id } });
+    if (!existente || existente.tabelionatoId !== sessao.tabelionatoId) {
+      return NextResponse.json({ error: 'Atendimento não encontrado.' }, { status: 404 });
+    }
+
+    // Apaga primeiro as mensagens (chave estrangeira) e depois o atendimento,
+    // numa transação — ou apaga os dois, ou não apaga nenhum.
+    await prisma.$transaction([
+      prisma.mensagem.deleteMany({ where: { atendimentoId: params.id } }),
+      prisma.atendimento.delete({ where: { id: params.id } }),
+    ]);
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error('[Histórico] erro ao excluir atendimento:', err);
+    return NextResponse.json({ error: 'Erro ao excluir o atendimento.' }, { status: 500 });
+  }
+}
