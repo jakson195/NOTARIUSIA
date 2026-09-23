@@ -4,6 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { upload } from '@vercel/blob/client';
 import { exportarWord } from '@/lib/exportarWord';
+import { comprimirImagem } from '@/lib/comprimirImagem';
+
+// Limite de segurança por arquivo (a Anthropic recusa a requisição inteira
+// se passar de ~32MB somando tudo, então travamos bem antes disso).
+const LIMITE_ARQUIVO_MB = 15;
 
 type Anexo = { tipo: 'pdf' | 'imagem'; mediaType: string; url: string; nome: string };
 type Mensagem = { papel: 'user' | 'assistant'; conteudo: string };
@@ -26,7 +31,19 @@ export default function QualiFlashPage() {
     setErro(null);
     try {
       const novos: Anexo[] = [];
-      for (const file of Array.from(files)) {
+      for (const fileOriginal of Array.from(files)) {
+        // Fotos tiradas direto do celular costumam vir grandes — reduzimos
+        // antes de enviar, o que evita a maioria dos erros de "arquivo
+        // grande demais" na hora de extrair os dados.
+        const file = await comprimirImagem(fileOriginal);
+
+        if (file.size > LIMITE_ARQUIVO_MB * 1024 * 1024) {
+          setErro(
+            `O arquivo "${file.name}" tem ${(file.size / 1024 / 1024).toFixed(1)}MB — reduza a qualidade/tamanho (ou divida um PDF muito grande em partes) e tente novamente.`
+          );
+          continue;
+        }
+
         const blob = await upload(file.name, file, {
           access: 'public',
           handleUploadUrl: '/api/upload',
