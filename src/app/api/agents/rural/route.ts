@@ -6,6 +6,11 @@ import { sugerirTituloExtracao, sugerirTituloDeArquivo } from '@/lib/agents/titu
 import { prisma } from '@/lib/prisma';
 import { pegarSessao } from '@/lib/auth';
 
+// Tempo máximo da função no Vercel (segundos). PDFs escaneados com muitas
+// páginas levam mais de 1 minuto para a IA ler; sem isso a função é cortada
+// e o usuário vê "Erro ao processar os documentos".
+export const maxDuration = 300;
+
 // POST /api/agents/rural
 // body: { texto?, anexos: AnexoUpload[], respostaAnterior?, atendimentoId?, tituloManual?, nomeProjeto?, conferente? }
 export async function POST(req: NextRequest) {

@@ -8,6 +8,11 @@ import { pegarSessao } from '@/lib/auth';
 
 type MensagemHistorico = { papel: 'user' | 'assistant'; conteudo: string };
 
+// Tempo máximo da função no Vercel (segundos). PDFs escaneados com muitas
+// páginas levam mais de 1 minuto para a IA ler; sem isso a função é cortada
+// e o usuário vê "Erro ao processar os documentos".
+export const maxDuration = 300;
+
 // POST /api/agents/qualiflash
 // body: { historico, texto, anexos?, atendimentoId?, tituloManual?, nomeProjeto?, conferente? }
 export async function POST(req: NextRequest) {
