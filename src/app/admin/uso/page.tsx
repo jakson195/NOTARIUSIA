@@ -10,7 +10,7 @@ type LinhaUso = {
 };
 type Tab = {
   id: string; nome: string; cidade: string | null; uf: string | null; plano: string;
-  precoBrl: number | null; upgradeEm: string | null; criadoEm: string; usuarios: number; custoMesUsd: number;
+  precoBrl: number | null; upgradeEm: string | null; testeAte: string | null; criadoEm: string; usuarios: number; custoMesUsd: number;
   documentosMes: number; paginasMes: number; atendimentosMes: number;
 };
 
@@ -56,6 +56,24 @@ export default function AdminUsoPage() {
     await fetch('/api/admin/logout', { method: 'POST' });
     router.push('/admin');
     router.refresh();
+  }
+
+  async function acao(tabelionatoId: string, a: 'liberar' | 'estender', msg: string) {
+    if (!confirm(msg)) return;
+    const resp = await fetch('/api/admin/plano', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tabelionatoId, acao: a }),
+    });
+    if (resp.ok) carregar(); else alert('Não foi possível atualizar.');
+  }
+
+  function statusTeste(t: Tab): { texto: string; cor: string } {
+    if (!t.testeAte) return { texto: 'Ativo (pago)', cor: 'text-ink-500' };
+    const dias = Math.ceil((new Date(t.testeAte).getTime() - Date.now()) / 86400000);
+    return dias > 0
+      ? { texto: `Teste grátis: ${dias} dia(s) restantes`, cor: 'text-ink-600' }
+      : { texto: `Teste ENCERRADO em ${fmtData(t.testeAte)} — bloqueado`, cor: 'text-wax font-medium' };
   }
 
   async function trocarPlano(tabelionatoId: string, plano: string) {
@@ -139,6 +157,7 @@ export default function AdminUsoPage() {
                         </td>
                         <td className="py-2 pr-4 text-ink-700">
                           {NOME_PLANO[t.plano] ?? t.plano}
+                          <span className={`block text-xs ${statusTeste(t).cor}`}>{statusTeste(t).texto}</span>
                           {subiu && (
                             <span className="block text-xs text-wax">subiu automaticamente em {fmtData(t.upgradeEm!)} — cobrar R$ 1.500</span>
                           )}
@@ -149,7 +168,17 @@ export default function AdminUsoPage() {
                         <td className="py-2 pr-4 text-right text-ink-600">{t.paginasMes}</td>
                         <td className="py-2 pr-4 text-right text-ink-700">{fmtUsd(t.custoMesUsd)}</td>
                         <td className={`py-2 pr-4 text-right ${pct > 100 ? 'text-wax font-medium' : 'text-ink-600'}`}>{pct.toFixed(0)}%</td>
-                        <td className="py-2 text-right">
+                        <td className="py-2 text-right space-y-1">
+                          {t.testeAte && (
+                            <>
+                              <button onClick={() => acao(t.id, 'liberar', 'Liberar este tabelionato (cliente pago, sem limite de teste)?')} className="block ml-auto text-xs underline text-ink-700">
+                                Liberar (cliente pago)
+                              </button>
+                              <button onClick={() => acao(t.id, 'estender', 'Dar mais 7 dias de teste grátis a partir de hoje?')} className="block ml-auto text-xs underline text-ink-500">
+                                +7 dias de teste
+                              </button>
+                            </>
+                          )}
                           {t.plano === 'BASICO' ? (
                             <button onClick={() => trocarPlano(t.id, 'INTERMEDIARIO')} className="text-xs underline text-ink-500">
                               Passar p/ Intermediário

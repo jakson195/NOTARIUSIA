@@ -6,6 +6,7 @@ import { sugerirTituloQualificacao } from '@/lib/agents/titulo';
 import { prisma } from '@/lib/prisma';
 import { pegarSessao } from '@/lib/auth';
 import { registrarUso } from '@/lib/uso';
+import { bloqueioDeAcesso } from '@/lib/acesso';
 
 type MensagemHistorico = { papel: 'user' | 'assistant'; conteudo: string };
 
@@ -21,6 +22,11 @@ export async function POST(req: NextRequest) {
     const sessao = await pegarSessao();
     if (!sessao) {
       return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
+    const bloqueio = await bloqueioDeAcesso(sessao.tabelionatoId);
+    if (bloqueio) {
+      return NextResponse.json({ error: bloqueio }, { status: 403 });
     }
 
     const body = await req.json();

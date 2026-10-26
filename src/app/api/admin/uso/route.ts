@@ -71,6 +71,7 @@ export async function GET() {
       plano: t.plano,
       precoBrl: (PLANOS as any)[t.plano]?.precoBrl ?? null,
       upgradeEm: t.upgradeEm,
+      testeAte: t.testeAte,
       criadoEm: t.createdAt,
       usuarios: t._count.usuarios,
       custoMesUsd: mesPorTab.get(t.id)?._sum.custoEstimadoUsd ?? 0,

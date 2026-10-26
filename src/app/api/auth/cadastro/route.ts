@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { criarTokenSessao, NOME_COOKIE_SESSAO } from '@/lib/auth';
+import { fimDoTeste } from '@/lib/planos';
 
 // POST /api/auth/cadastro — autocadastro de um novo tabelionato.
 // Cria o tabelionato (plano Básico) + o primeiro usuário (ADMIN) e já
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
         senhaHash,
         papel: 'ADMIN',
         tabelionato: {
-          create: { nome: nomeTabelionato, cidade, uf, plano: 'BASICO' },
+          create: { nome: nomeTabelionato, cidade, uf, plano: 'BASICO', testeAte: fimDoTeste() },
         },
       },
     });

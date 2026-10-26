@@ -6,6 +6,7 @@ import { sugerirTituloExtracao, sugerirTituloDeArquivo } from '@/lib/agents/titu
 import { prisma } from '@/lib/prisma';
 import { pegarSessao } from '@/lib/auth';
 import { registrarUso } from '@/lib/uso';
+import { bloqueioDeAcesso } from '@/lib/acesso';
 
 // Tempo máximo da função no Vercel (segundos). PDFs escaneados com muitas
 // páginas levam mais de 1 minuto para a IA ler; sem isso a função é cortada
@@ -19,6 +20,11 @@ export async function POST(req: NextRequest) {
     const sessao = await pegarSessao();
     if (!sessao) {
       return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
+    }
+
+    const bloqueio = await bloqueioDeAcesso(sessao.tabelionatoId);
+    if (bloqueio) {
+      return NextResponse.json({ error: bloqueio }, { status: 403 });
     }
 
     const body = await req.json();

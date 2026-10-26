@@ -1,4 +1,9 @@
 import Link from 'next/link';
+import { pegarSessao } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { situacaoDoTeste } from '@/lib/planos';
+
+export const dynamic = 'force-dynamic';
 
 const agentes = [
   {
@@ -24,7 +29,13 @@ const agentes = [
   },
 ];
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const sessao = await pegarSessao();
+  const tab = sessao
+    ? await prisma.tabelionato.findUnique({ where: { id: sessao.tabelionatoId }, select: { testeAte: true } })
+    : null;
+  const teste = situacaoDoTeste(tab?.testeAte);
+
   return (
     <main className="min-h-screen px-6 py-12 md:py-16 max-w-4xl mx-auto">
       <header className="mb-10">
@@ -33,6 +44,17 @@ export default function Dashboard() {
         </Link>
         <h1 className="font-serif text-3xl text-ink-800 mt-1">Escolha um assistente</h1>
       </header>
+
+      {teste.emTeste && (
+        <p className="mb-6 border border-brass/40 bg-brass/5 rounded-sm p-3 text-sm text-ink-700">
+          Teste grátis: restam <strong>{teste.diasRestantes} dia(s)</strong>. Depois, fale com o administrador para ativar o plano.
+        </p>
+      )}
+      {teste.expirado && (
+        <p className="mb-6 border border-wax/40 bg-wax/5 rounded-sm p-3 text-sm text-wax">
+          O período de teste grátis terminou. Fale com o administrador para ativar o seu plano.
+        </p>
+      )}
 
       <div className="grid gap-4">
         {agentes.map((agente) => (

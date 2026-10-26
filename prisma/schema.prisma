@@ -51,6 +51,9 @@ model Tabelionato {
   // Quando o consumo do mês passou do limite do plano Básico e o plano
   // subiu automaticamente para Intermediário (usado para avisar o admin).
   upgradeEm     DateTime?
+  // Fim do teste grátis (7 dias após o cadastro). NULL = cliente ativo
+  // (sem teste, ex.: clientes antigos ou já liberados pelo admin).
+  testeAte      DateTime?
 
   usuarios      Usuario[]
   atendimentos  Atendimento[]

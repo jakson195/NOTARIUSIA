@@ -34,3 +34,21 @@ export function inicioDoMesSP(ref: Date = new Date()): Date {
   const sp = new Date(ref.getTime() - 3 * 60 * 60 * 1000);
   return new Date(Date.UTC(sp.getUTCFullYear(), sp.getUTCMonth(), 1, 3, 0, 0));
 }
+
+// ---- Teste grátis ----
+export const DIAS_TESTE_GRATIS = 7;
+
+export function fimDoTeste(ref: Date = new Date()): Date {
+  return new Date(ref.getTime() + DIAS_TESTE_GRATIS * 24 * 60 * 60 * 1000);
+}
+
+// testeAte NULL = cliente ativo. Com data: em teste até ela; depois, bloqueado.
+export function situacaoDoTeste(testeAte: Date | null | undefined) {
+  if (!testeAte) return { emTeste: false, expirado: false, diasRestantes: null as number | null };
+  const ms = testeAte.getTime() - Date.now();
+  return {
+    emTeste: ms > 0,
+    expirado: ms <= 0,
+    diasRestantes: ms > 0 ? Math.ceil(ms / (24 * 60 * 60 * 1000)) : 0,
+  };
+}

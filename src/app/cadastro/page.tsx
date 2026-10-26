@@ -50,8 +50,9 @@ export default function CadastroPage() {
         <span className="font-serif text-lg text-ink-800 tracking-tight">NotariusIA</span>
         <h1 className="font-serif text-2xl text-ink-800 mt-1 mb-1">Criar conta</h1>
         <p className="text-sm text-ink-500 mb-5">
-          Comece no plano Básico (R$ 750/mês). Se o seu consumo mensal passar do limite do Básico,
-          a conta passa automaticamente para o plano Intermediário (R$ 1.500/mês).
+          <strong>7 dias grátis</strong>, sem cartão. Depois do teste, plano Básico (R$ 750/mês). Se o seu
+          consumo mensal passar do limite do Básico, a conta passa automaticamente para o Intermediário
+          (R$ 1.500/mês).
         </p>
 
         <form onSubmit={cadastrar} className="flex flex-col gap-3">
