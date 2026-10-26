@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ContatoLinha from '@/components/ContatoLinha';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -72,6 +73,7 @@ export default function LoginPage() {
         <p className="mt-4 text-xs text-ink-500">
           Ainda não tem conta? <Link href="/cadastro" className="underline">Criar conta</Link>
         </p>
+        <ContatoLinha className="mt-3 text-xs text-ink-500" />
       </div>
     </main>
   );

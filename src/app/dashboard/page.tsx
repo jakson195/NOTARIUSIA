@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ContatoLinha from '@/components/ContatoLinha';
 import { pegarSessao } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { situacaoDoTeste } from '@/lib/planos';
@@ -48,11 +49,13 @@ export default async function Dashboard() {
       {teste.emTeste && (
         <p className="mb-6 border border-brass/40 bg-brass/5 rounded-sm p-3 text-sm text-ink-700">
           Teste grátis: restam <strong>{teste.diasRestantes} dia(s)</strong>. Depois, fale com o administrador para ativar o plano.
+          <ContatoLinha className="mt-1 text-xs text-ink-500" />
         </p>
       )}
       {teste.expirado && (
         <p className="mb-6 border border-wax/40 bg-wax/5 rounded-sm p-3 text-sm text-wax">
           O período de teste grátis terminou. Fale com o administrador para ativar o seu plano.
+          <ContatoLinha className="mt-1 text-xs" />
         </p>
       )}
 

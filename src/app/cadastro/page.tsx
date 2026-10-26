@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ContatoLinha from '@/components/ContatoLinha';
 
 export default function CadastroPage() {
   const router = useRouter();
@@ -93,6 +94,7 @@ export default function CadastroPage() {
         <p className="mt-4 text-xs text-ink-500">
           Já tem conta? <Link href="/login" className="underline">Entrar</Link>
         </p>
+        <ContatoLinha className="mt-3 text-xs text-ink-500" />
       </div>
     </main>
   );

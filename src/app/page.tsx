@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ContatoLinha from '@/components/ContatoLinha';
 
 const LINKS_NAV = [
   { href: '#inicio', label: 'Início' },
@@ -215,6 +216,7 @@ export default function Home() {
           </div>
           <p className="text-xs text-ink-400">Tecnologia a favor da regularização.</p>
           <p className="text-xs text-ink-400">Assistentes de IA para tabelionatos</p>
+          <ContatoLinha className="text-xs text-ink-500" />
         </div>
       </footer>
     </div>
