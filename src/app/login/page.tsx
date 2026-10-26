@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -68,8 +69,8 @@ export default function LoginPage() {
           {erro && <p className="text-sm text-wax">{erro}</p>}
         </form>
 
-        <p className="mt-4 text-xs text-ink-400">
-          Não tem acesso? Fale com o administrador do sistema.
+        <p className="mt-4 text-xs text-ink-500">
+          Ainda não tem conta? <Link href="/cadastro" className="underline">Criar conta</Link>
         </p>
       </div>
     </main>

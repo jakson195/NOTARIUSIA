@@ -27,13 +27,36 @@ export type AnexoUpload = {
   nome?: string; // nome original do arquivo — usado como respaldo para sugerir título
 };
 
-async function baixarComoBase64(url: string): Promise<string> {
+export type MetricasUpload = { documentos: number; paginas: number };
+
+// Conta as páginas de um PDF (usado só para métrica de consumo; se falhar,
+// usa uma contagem aproximada e segue — nunca derruba o atendimento).
+async function contarPaginasPdf(buffer: Buffer): Promise<number> {
+  try {
+    const { PDFDocument } = await import('pdf-lib');
+    const doc = await PDFDocument.load(buffer, { ignoreEncryption: true, updateMetadata: false });
+    return Math.max(1, doc.getPageCount());
+  } catch {
+    const achados = buffer.toString('latin1').match(/\/Type\s*\/Page[^s]/g);
+    return Math.max(1, achados?.length ?? 1);
+  }
+}
+
+async function baixarComoBase64(
+  url: string,
+  tipo?: 'pdf' | 'imagem',
+  metricas?: MetricasUpload
+): Promise<string> {
   const resposta = await fetch(url);
   if (!resposta.ok) {
     throw new Error(`Falha ao baixar anexo (${resposta.status}): ${url}`);
   }
-  const buffer = await resposta.arrayBuffer();
-  return Buffer.from(buffer).toString('base64');
+  const buffer = Buffer.from(await resposta.arrayBuffer());
+  if (metricas) {
+    metricas.documentos += 1;
+    metricas.paginas += tipo === 'pdf' ? await contarPaginasPdf(buffer) : 1;
+  }
+  return buffer.toString('base64');
 }
 
 // Monta os blocos de conteúdo (texto + documentos/imagens) no formato que a
@@ -43,12 +66,13 @@ async function baixarComoBase64(url: string): Promise<string> {
 // a API aceitando esse formato normalmente em tempo de execução.
 export async function montarBlocosDeConteudo(
   textoUsuario: string,
-  anexos: AnexoUpload[]
+  anexos: AnexoUpload[],
+  metricas?: MetricasUpload
 ): Promise<any[]> {
   const blocos: any[] = [];
 
   for (const anexo of anexos) {
-    const base64 = await baixarComoBase64(anexo.url);
+    const base64 = await baixarComoBase64(anexo.url, anexo.tipo, metricas);
 
     if (anexo.tipo === 'pdf') {
       blocos.push({

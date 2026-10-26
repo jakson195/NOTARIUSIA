@@ -17,6 +17,7 @@ enum PlanoTipo {
   BASICO
   PRO
   ILIMITADO
+  INTERMEDIARIO
 }
 
 enum PapelUsuario {
@@ -47,9 +48,13 @@ model Tabelionato {
   plano         PlanoTipo @default(BASICO)
   limiteMensal  Int       @default(30) // nº de atendimentos/mês incluídos no plano
   stripeCustomerId String?
+  // Quando o consumo do mês passou do limite do plano Básico e o plano
+  // subiu automaticamente para Intermediário (usado para avisar o admin).
+  upgradeEm     DateTime?
 
   usuarios      Usuario[]
   atendimentos  Atendimento[]
+  usosApi       UsoApi[]
 }
 
 model Usuario {
@@ -64,6 +69,7 @@ model Usuario {
   tabelionato    Tabelionato @relation(fields: [tabelionatoId], references: [id])
 
   atendimentos   Atendimento[]
+  usosApi        UsoApi[]
 }
 
 // Cada uso de um agente (Urbano, Rural, QualiFlash) gera um Atendimento.
@@ -116,3 +122,35 @@ model Mensagem {
   createdAt      DateTime @default(now())
 }
 
+
+// Registro de consumo da API por chamada — alimenta o painel /admin e a
+// troca automática de plano (Básico -> Intermediário). Custo em dólar é
+// uma estimativa (ver src/lib/custoApi.ts).
+model UsoApi {
+  id                   String   @id @default(uuid())
+  createdAt            DateTime @default(now())
+
+  tabelionatoId        String
+  tabelionato          Tabelionato @relation(fields: [tabelionatoId], references: [id])
+
+  usuarioId            String
+  usuario              Usuario @relation(fields: [usuarioId], references: [id])
+
+  agente               TipoAgente
+
+  inputTokens          Int
+  outputTokens         Int
+  cacheCreationTokens  Int @default(0)
+  cacheReadTokens      Int @default(0)
+
+  custoEstimadoUsd     Float
+
+  // Uploads desta chamada (arquivos e páginas enviados) — base para medir
+  // consumo por upload e definir limites de plano.
+  documentos           Int @default(0)
+  paginas              Int @default(0)
+
+  @@index([usuarioId])
+  @@index([tabelionatoId])
+  @@index([createdAt])
+}

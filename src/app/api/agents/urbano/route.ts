@@ -5,6 +5,7 @@ import { URBANO_SYSTEM_PROMPT } from '@/lib/agents/prompts';
 import { sugerirTituloExtracao, sugerirTituloDeArquivo } from '@/lib/agents/titulo';
 import { prisma } from '@/lib/prisma';
 import { pegarSessao } from '@/lib/auth';
+import { registrarUso } from '@/lib/uso';
 
 // Tempo máximo da função no Vercel (segundos). PDFs escaneados com muitas
 // páginas levam mais de 1 minuto para a IA ler; sem isso a função é cortada
@@ -50,6 +51,7 @@ export async function POST(req: NextRequest) {
       ? `[EXTRAÇÃO ANTERIOR NESTE ATENDIMENTO — atualize/complete, não apague dados válidos]\n${respostaAnterior}\n\n[NOVOS DOCUMENTOS ENVIADOS AGORA]\n${texto}`
       : texto;
 
+    const metricas = { documentos: 0, paginas: 0 };
     const resposta = await anthropic.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: 8000,
@@ -65,9 +67,17 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: 'user',
-          content: await montarBlocosDeConteudo(textoUsuario, anexos),
+          content: await montarBlocosDeConteudo(textoUsuario, anexos, metricas),
         },
       ],
+    });
+
+    await registrarUso({
+      tabelionatoId: sessao.tabelionatoId,
+      usuarioId: sessao.usuarioId,
+      agente: 'URBANO',
+      usage: resposta.usage,
+      metricas,
     });
 
     const textoResposta = resposta.content

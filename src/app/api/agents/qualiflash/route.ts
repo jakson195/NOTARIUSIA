@@ -5,6 +5,7 @@ import { QUALIFLASH_SYSTEM_PROMPT } from '@/lib/agents/prompts';
 import { sugerirTituloQualificacao } from '@/lib/agents/titulo';
 import { prisma } from '@/lib/prisma';
 import { pegarSessao } from '@/lib/auth';
+import { registrarUso } from '@/lib/uso';
 
 type MensagemHistorico = { papel: 'user' | 'assistant'; conteudo: string };
 
@@ -53,9 +54,10 @@ export async function POST(req: NextRequest) {
     const entradaResumo =
       texto || (anexos.length > 0 ? `${anexos.length} documento(s) anexado(s)` : '(sem texto)');
 
+    const metricas = { documentos: 0, paginas: 0 };
     mensagens.push({
       role: 'user',
-      content: await montarBlocosDeConteudo(texto, anexos),
+      content: await montarBlocosDeConteudo(texto, anexos, metricas),
     });
 
     const resposta = await anthropic.messages.create({
@@ -66,6 +68,14 @@ export async function POST(req: NextRequest) {
         { type: 'text', text: QUALIFLASH_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
       ] as any,
       messages: mensagens,
+    });
+
+    await registrarUso({
+      tabelionatoId: sessao.tabelionatoId,
+      usuarioId: sessao.usuarioId,
+      agente: 'QUALIFLASH',
+      usage: resposta.usage,
+      metricas,
     });
 
     const textoResposta = resposta.content
