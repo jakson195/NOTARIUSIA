@@ -58,6 +58,7 @@ model Tabelionato {
   usuarios      Usuario[]
   atendimentos  Atendimento[]
   usosApi       UsoApi[]
+  logins        LoginLog[]
 }
 
 model Usuario {
@@ -73,6 +74,7 @@ model Usuario {
 
   atendimentos   Atendimento[]
   usosApi        UsoApi[]
+  logins         LoginLog[]
 }
 
 // Cada uso de um agente (Urbano, Rural, QualiFlash) gera um Atendimento.
@@ -152,6 +154,27 @@ model UsoApi {
   // consumo por upload e definir limites de plano.
   documentos           Int @default(0)
   paginas              Int @default(0)
+
+  @@index([usuarioId])
+  @@index([tabelionatoId])
+  @@index([createdAt])
+}
+
+// Registro de acessos (quem entrou, quando e de onde) — visível só no /admin.
+// origem: "LOGIN" (entrada normal) ou "CADASTRO" (conta recém-criada).
+model LoginLog {
+  id             String   @id @default(uuid())
+  createdAt      DateTime @default(now())
+
+  usuarioId      String
+  usuario        Usuario @relation(fields: [usuarioId], references: [id])
+
+  tabelionatoId  String
+  tabelionato    Tabelionato @relation(fields: [tabelionatoId], references: [id])
+
+  origem         String   @default("LOGIN")
+  ip             String?
+  userAgent      String?
 
   @@index([usuarioId])
   @@index([tabelionatoId])

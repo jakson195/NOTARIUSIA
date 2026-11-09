@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { criarTokenSessao, NOME_COOKIE_SESSAO } from '@/lib/auth';
 import { fimDoTeste } from '@/lib/planos';
+import { registrarLogin } from '@/lib/loginLog';
 
 // POST /api/auth/cadastro — autocadastro de um novo tabelionato.
 // Cria o tabelionato (plano Básico) + o primeiro usuário (ADMIN) e já
@@ -54,6 +55,8 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    await registrarLogin(req, usuario, 'CADASTRO');
 
     const token = await criarTokenSessao({
       usuarioId: usuario.id,

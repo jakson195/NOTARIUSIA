@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { criarTokenSessao, NOME_COOKIE_SESSAO } from '@/lib/auth';
+import { registrarLogin } from '@/lib/loginLog';
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,6 +25,8 @@ export async function POST(req: NextRequest) {
     if (!senhaValida) {
       return NextResponse.json({ error: 'E-mail ou senha incorretos.' }, { status: 401 });
     }
+
+    await registrarLogin(req, usuario, 'LOGIN');
 
     const token = await criarTokenSessao({
       usuarioId: usuario.id,

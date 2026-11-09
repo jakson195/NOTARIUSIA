@@ -97,9 +97,14 @@ export default function AdminUsoPage() {
           <p className="text-ink-400 text-xs uppercase tracking-wide">Painel interno</p>
           <h1 className="font-serif text-3xl text-ink-800 mt-1">Planos e consumo</h1>
         </div>
-        <button onClick={sair} className="text-sm text-ink-500 hover:text-wax border border-ink-200 rounded-sm px-3 py-2">
-          Sair
-        </button>
+        <div className="flex items-center gap-2">
+          <a href="/admin/logins" className="text-sm text-ink-700 hover:text-ink-900 border border-ink-200 rounded-sm px-3 py-2">
+            Quem acessou
+          </a>
+          <button onClick={sair} className="text-sm text-ink-500 hover:text-wax border border-ink-200 rounded-sm px-3 py-2">
+            Sair
+          </button>
+        </div>
       </div>
       <p className="text-ink-500 text-sm mt-2 max-w-2xl">
         Custo estimado em dólar com base na tabela de preços da Anthropic — pode variar um pouco da fatura real.
